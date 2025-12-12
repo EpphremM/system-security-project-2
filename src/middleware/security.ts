@@ -1,0 +1,180 @@
+import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, authenticateAPIKey, checkAPIVersion } from "@/lib/security/api-security";
+import { validateStringInput, validateFileUpload } from "@/lib/security/input-validation";
+import { encodeHTML, filterLogOutput } from "@/lib/security/output-encoding";
+
+/**
+ * Comprehensive security middleware
+ */
+export async function securityMiddleware(
+  request: NextRequest,
+  options?: {
+    requireAuth?: boolean;
+    requireAPIKey?: boolean;
+    rateLimitEndpoint?: string;
+    minAPIVersion?: string;
+    maxAPIVersion?: string;
+    validateInput?: boolean;
+    allowedFileTypes?: string[];
+    maxFileSize?: number;
+  }
+): Promise<{
+  allowed: boolean;
+  response?: NextResponse;
+  metadata?: any;
+}> {
+  const metadata: any = {};
+
+  // Rate limiting
+  if (options?.rateLimitEndpoint) {
+    const rateLimitResult = await rateLimit(request, options.rateLimitEndpoint);
+    if (!rateLimitResult.allowed) {
+      return {
+        allowed: false,
+        response: rateLimitResult.response,
+      };
+    }
+  }
+
+  // API key authentication
+  if (options?.requireAPIKey) {
+    const apiKeyResult = await authenticateAPIKey(request);
+    if (!apiKeyResult.authenticated) {
+      return {
+        allowed: false,
+        response: apiKeyResult.response,
+      };
+    }
+    metadata.apiKeyId = apiKeyResult.keyId;
+    metadata.permissions = apiKeyResult.permissions;
+  }
+
+  // API versioning
+  if (options?.minAPIVersion || options?.maxAPIVersion) {
+    const versionResult = checkAPIVersion(
+      request,
+      options.minAPIVersion,
+      options.maxAPIVersion
+    );
+    if (!versionResult.valid) {
+      return {
+        allowed: false,
+        response: versionResult.response,
+      };
+    }
+    metadata.apiVersion = versionResult.version;
+  }
+
+  // Input validation for POST/PUT requests
+  if (options?.validateInput && (request.method === "POST" || request.method === "PUT")) {
+    try {
+      const body = await request.clone().json();
+      const validationResult = validateRequestBody(body);
+      if (!validationResult.valid) {
+        return {
+          allowed: false,
+          response: NextResponse.json(
+            {
+              error: "Invalid input",
+              details: validationResult.errors,
+            },
+            { status: 400 }
+          ),
+        };
+      }
+    } catch (error) {
+      // If body is not JSON, skip validation
+    }
+  }
+
+  // File upload validation
+  if (request.method === "POST" && request.headers.get("content-type")?.includes("multipart/form-data")) {
+    // File validation would be done in the route handler
+    // This is just a placeholder
+  }
+
+  return {
+    allowed: true,
+    metadata,
+  };
+}
+
+/**
+ * Validate request body
+ */
+function validateRequestBody(body: any): {
+  valid: boolean;
+  errors?: string[];
+} {
+  const errors: string[] = [];
+
+  function validateValue(value: any, path: string = ""): void {
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    if (typeof value === "string") {
+      const result = validateStringInput(value, {
+        maxLength: 10000,
+        allowSpecialChars: true,
+      });
+      if (!result.valid) {
+        errors.push(`${path}: ${result.error}`);
+      }
+    } else if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        validateValue(item, `${path}[${index}]`);
+      });
+    } else if (typeof value === "object") {
+      for (const [key, val] of Object.entries(value)) {
+        validateValue(val, path ? `${path}.${key}` : key);
+      }
+    }
+  }
+
+  validateValue(body);
+
+  return {
+    valid: errors.length === 0,
+    errors: errors.length > 0 ? errors : undefined,
+  };
+}
+
+/**
+ * Add security headers to response
+ */
+export function addSecurityHeaders(response: NextResponse): NextResponse {
+  // Content Security Policy - Allow hCaptcha
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hcaptcha.com https://*.hcaptcha.com https://hcaptcha.com; style-src 'self' 'unsafe-inline' https://*.hcaptcha.com https://hcaptcha.com; img-src 'self' data: https: blob: https://*.hcaptcha.com https://hcaptcha.com; font-src 'self' data: https://*.hcaptcha.com; connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://api.hcaptcha.com; frame-src 'self' https://*.hcaptcha.com https://hcaptcha.com;"
+  );
+
+  // Strict Transport Security (HSTS)
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload"
+  );
+
+  // X-Content-Type-Options
+  response.headers.set("X-Content-Type-Options", "nosniff");
+
+  // X-Frame-Options
+  response.headers.set("X-Frame-Options", "DENY");
+
+  // X-XSS-Protection
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+
+  // Referrer Policy
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  // Permissions Policy
+  response.headers.set(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=()"
+  );
+
+  return response;
+}
+
+
