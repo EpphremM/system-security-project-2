@@ -17,16 +17,14 @@ interface PreRegistrationData {
   scheduledDate: Date;
   scheduledStart: Date;
   scheduledEnd: Date;
-  idDocument?: string; // Base64 encoded document
+  idDocument?: string; 
   idDocumentType?: string;
   isGroupVisit?: boolean;
   groupSize?: number;
   groupId?: string;
 }
 
-/**
- * Pre-register visitor
- */
+
 export async function preRegisterVisitor(
   data: PreRegistrationData,
   captchaToken?: string
@@ -35,7 +33,7 @@ export async function preRegisterVisitor(
   status: string;
   message: string;
 }> {
-  // Verify CAPTCHA if provided
+  
   if (captchaToken) {
     const captchaValid = await verifyCAPTCHA(captchaToken);
     if (!captchaValid) {
@@ -43,14 +41,14 @@ export async function preRegisterVisitor(
     }
   }
 
-  // Encrypt ID document if provided
+  
   let idDocumentEncrypted: string | undefined;
   if (data.idDocument) {
     const encrypted = await encryptLogData(data.idDocument, "USER_ACTIVITY");
     idDocumentEncrypted = JSON.stringify(encrypted);
   }
 
-  // Create visitor record
+  
   const visitor = await prisma.visitor.create({
     data: {
       firstName: data.firstName,

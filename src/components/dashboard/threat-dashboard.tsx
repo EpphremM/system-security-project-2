@@ -35,14 +35,14 @@ export function ThreatDashboard() {
         const response = await fetch("/api/dashboard/security-overview?view=threats");
         if (response.ok) {
           const result = await response.json();
-          // Ensure all required arrays exist
+          
           setData({
             activeThreats: result.activeThreats || [],
             threatMap: result.threatMap || [],
             threatTrends: result.threatTrends || [],
           });
         } else {
-          // Set empty data on error
+          
           setData({
             activeThreats: [],
             threatMap: [],
@@ -51,7 +51,7 @@ export function ThreatDashboard() {
         }
       } catch (err) {
         console.error("Failed to fetch threat data:", err);
-        // Set empty data on error
+        
         setData({
           activeThreats: [],
           threatMap: [],
@@ -75,7 +75,7 @@ export function ThreatDashboard() {
     return <Card><CardContent className="pt-6">No data available</CardContent></Card>;
   }
 
-  // Ensure arrays exist before using slice
+  
   const activeThreats = data.activeThreats || [];
   const threatMap = data.threatMap || [];
   const threatTrends = data.threatTrends || [];

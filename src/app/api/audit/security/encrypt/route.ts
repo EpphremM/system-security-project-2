@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const { logId, data } = parsed.data;
 
-    // Get log to determine category
+    
     const { prisma } = await import("@/lib/prisma");
     const log = await prisma.auditLog.findUnique({
       where: { id: logId },
@@ -44,10 +44,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Encrypt data
+    
     const encrypted = await encryptLogData(data, log.category);
 
-    // Update log with encrypted data
+    
     await prisma.auditLog.update({
       where: { id: logId },
       data: {

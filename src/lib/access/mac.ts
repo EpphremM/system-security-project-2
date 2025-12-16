@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SecurityLevel } from "@/generated/prisma/enums";
 
-/**
- * Security level hierarchy for Bell-LaPadula model
- * Higher number = higher classification
- */
+
 const SECURITY_LEVEL_HIERARCHY: Record<SecurityLevel, number> = {
   PUBLIC: 0,
   INTERNAL: 1,
@@ -13,18 +10,12 @@ const SECURITY_LEVEL_HIERARCHY: Record<SecurityLevel, number> = {
   TOP_SECRET: 4,
 };
 
-/**
- * Get numeric level for a security level
- */
+
 export function getSecurityLevelValue(level: SecurityLevel): number {
   return SECURITY_LEVEL_HIERARCHY[level] ?? 0;
 }
 
-/**
- * Check if user clearance is greater than or equal to resource level
- * Bell-LaPadula Simple Security Property: No Read-Up
- * A subject at a given security level cannot read data at a higher security level
- */
+
 export function canRead(
   userLevel: SecurityLevel,
   resourceLevel: SecurityLevel,
@@ -32,37 +23,33 @@ export function canRead(
   resourceCompartments: string[],
   trustedSubject: boolean = false
 ): boolean {
-  // Trusted subjects (admins) can bypass read restrictions
+  
   if (trustedSubject) {
     return true;
   }
 
-  // Check level: user must have clearance >= resource level
+  
   const userLevelValue = getSecurityLevelValue(userLevel);
   const resourceLevelValue = getSecurityLevelValue(resourceLevel);
 
   if (userLevelValue < resourceLevelValue) {
-    return false; // No read-up
+    return false; 
   }
 
-  // Check compartments: user must have access to all resource compartments (need-to-know)
+  
   if (resourceCompartments.length > 0) {
     const hasAllCompartments = resourceCompartments.every((compartment) =>
       userCompartments.includes(compartment)
     );
     if (!hasAllCompartments) {
-      return false; // Missing required compartment
+      return false; 
     }
   }
 
   return true;
 }
 
-/**
- * Check if user can write to resource
- * Bell-LaPadula Star Property: No Write-Down
- * A subject at a given security level cannot write data to a lower security level
- */
+
 export function canWrite(
   userLevel: SecurityLevel,
   resourceLevel: SecurityLevel,
@@ -70,20 +57,20 @@ export function canWrite(
   resourceCompartments: string[],
   trustedSubject: boolean = false
 ): boolean {
-  // Trusted subjects (admins) can bypass write restrictions
+  
   if (trustedSubject) {
     return true;
   }
 
-  // Check level: user cannot write to lower classification (no write-down)
+  
   const userLevelValue = getSecurityLevelValue(userLevel);
   const resourceLevelValue = getSecurityLevelValue(resourceLevel);
 
   if (userLevelValue < resourceLevelValue) {
-    return false; // Cannot write to higher classification
+    return false; 
   }
 
-  // For write operations, user must have access to all resource compartments
+  
   if (resourceCompartments.length > 0) {
     const hasAllCompartments = resourceCompartments.every((compartment) =>
       userCompartments.includes(compartment)
@@ -96,30 +83,24 @@ export function canWrite(
   return true;
 }
 
-/**
- * Check if user can declassify (lower) a resource
- * Only trusted subjects can declassify
- */
+
 export function canDeclassify(
   currentLevel: SecurityLevel,
   targetLevel: SecurityLevel,
   trustedSubject: boolean
 ): boolean {
   if (!trustedSubject) {
-    return false; // Only trusted subjects can declassify
+    return false; 
   }
 
   const currentLevelValue = getSecurityLevelValue(currentLevel);
   const targetLevelValue = getSecurityLevelValue(targetLevel);
 
-  // Can only declassify (lower the level)
+  
   return targetLevelValue < currentLevelValue;
 }
 
-/**
- * Check if user can classify (raise) a resource
- * User must have clearance >= target level
- */
+
 export function canClassify(
   userLevel: SecurityLevel,
   targetLevel: SecurityLevel,
@@ -132,13 +113,11 @@ export function canClassify(
   const userLevelValue = getSecurityLevelValue(userLevel);
   const targetLevelValue = getSecurityLevelValue(targetLevel);
 
-  // User must have clearance >= target level
+  
   return userLevelValue >= targetLevelValue;
 }
 
-/**
- * Get user clearance with compartments
- */
+
 export async function getUserClearance(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -152,7 +131,7 @@ export async function getUserClearance(userId: string) {
     return null;
   }
 
-  // Use clearance if exists, otherwise fall back to securityClearance
+  
   const level = user.clearance?.level ?? user.securityClearance;
   const compartments = user.clearance?.compartments ?? [];
   const trustedSubject = user.trustedSubject ?? false;
@@ -165,15 +144,13 @@ export async function getUserClearance(userId: string) {
   };
 }
 
-/**
- * Check if user can access resource (read)
- */
+
 export async function checkReadAccess(
   userId: string,
   resourceType: string,
   resourceId: string
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Check if user is SUPER_ADMIN - bypass all MAC checks
+  
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { legacyRole: true },
@@ -188,7 +165,7 @@ export async function checkReadAccess(
     return { allowed: false, reason: "User not found" };
   }
 
-  // Special handling for visitors: check securityLabel directly from Visitor table
+  
   if (resourceType === "visitor") {
     const visitor = await prisma.visitor.findUnique({
       where: { id: resourceId },
@@ -199,14 +176,14 @@ export async function checkReadAccess(
       return { allowed: false, reason: "Visitor not found" };
     }
 
-    // If user is the host, they can always read their own visitor
+    
     if (visitor.hostId === userId) {
       return { allowed: true };
     }
 
-    // Check MAC clearance for visitor's security label
+    
     const resourceLevel = visitor.securityLabel;
-    const resourceCompartments: string[] = []; // Visitors don't have compartments by default
+    const resourceCompartments: string[] = []; 
 
     const allowed = canRead(
       userClearance.level,
@@ -222,7 +199,7 @@ export async function checkReadAccess(
     };
   }
 
-  // Get resource with security label
+  
   const resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -256,9 +233,7 @@ export async function checkReadAccess(
   };
 }
 
-/**
- * Check if user can modify resource (write)
- */
+
 export async function checkWriteAccess(
   userId: string,
   resourceType: string,
@@ -266,7 +241,7 @@ export async function checkWriteAccess(
   targetLevel?: SecurityLevel,
   targetCompartments?: string[]
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Check if user is SUPER_ADMIN - bypass all MAC checks
+  
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { legacyRole: true },
@@ -280,7 +255,7 @@ export async function checkWriteAccess(
     return { allowed: false, reason: "User not found" };
   }
 
-  // Get resource with security label
+  
   const resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -300,7 +275,7 @@ export async function checkWriteAccess(
   const resourceLevel = targetLevel ?? resource.securityLabel.classification;
   const resourceCompartments = targetCompartments ?? resource.securityLabel.compartments ?? [];
 
-  // Check if user can write to this level
+  
   const allowed = canWrite(
     userClearance.level,
     resourceLevel,
@@ -315,9 +290,7 @@ export async function checkWriteAccess(
   };
 }
 
-/**
- * Automatically classify resource based on content
- */
+
 export function autoClassifyContent(
   content: string,
   keywords: Record<SecurityLevel, string[]> = {}
@@ -333,13 +306,13 @@ export function autoClassifyContent(
   const classificationKeywords = { ...defaultKeywords, ...keywords };
   const contentLower = content.toLowerCase();
 
-  // Check from highest to lowest classification
+  
   const levels: SecurityLevel[] = ["TOP_SECRET", "RESTRICTED", "CONFIDENTIAL", "INTERNAL", "PUBLIC"];
 
   for (const level of levels) {
     const keywords = classificationKeywords[level];
     if (keywords.some((keyword) => contentLower.includes(keyword))) {
-      // Determine compartments based on content
+      
       const compartments: string[] = [];
       if (contentLower.includes("financial") || contentLower.includes("budget") || contentLower.includes("revenue")) {
         compartments.push("FINANCIAL");
@@ -358,13 +331,11 @@ export function autoClassifyContent(
     }
   }
 
-  // Default to INTERNAL if no keywords found
+  
   return { level: "INTERNAL", compartments: [] };
 }
 
-/**
- * Get minimum clearance required for a set of resources
- */
+
 export function getMinimumRequiredClearance(levels: SecurityLevel[]): SecurityLevel {
   if (levels.length === 0) {
     return "PUBLIC";
@@ -373,7 +344,7 @@ export function getMinimumRequiredClearance(levels: SecurityLevel[]): SecurityLe
   const levelValues = levels.map((level) => getSecurityLevelValue(level));
   const maxValue = Math.max(...levelValues);
 
-  // Find the level with this value
+  
   for (const [level, value] of Object.entries(SECURITY_LEVEL_HIERARCHY)) {
     if (value === maxValue) {
       return level as SecurityLevel;

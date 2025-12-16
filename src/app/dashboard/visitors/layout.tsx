@@ -12,8 +12,8 @@ export default async function VisitorsLayout({
     redirect("/auth/login");
   }
 
-  // This is a nested layout, so it just passes through children
-  // The parent dashboard layout already provides sidebar and header
+  
+  
   return <>{children}</>;
 }
 

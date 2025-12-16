@@ -7,7 +7,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleMFARequired = (userId: string, methods: string[]) => {
-    // Redirect to MFA verification page
+    
     router.push("/auth/verify-mfa");
   };
 

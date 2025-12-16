@@ -28,13 +28,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate new TOTP secret
+    
     const secret = generateTOTPSecret();
     const uri = generateTOTPURI(secret, user.email, process.env.WEBAUTHN_RP_NAME || "Visitor Management System");
 
-    // Store secret temporarily (user needs to verify before enabling)
-    // In production, you might want to store this in a session or temporary storage
-    // For now, we'll return it and the user will verify it in the next step
+    
+    
+    
 
     return NextResponse.json({
       secret,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-// Edge-compatible crypto functions using Web Crypto API
+
 async function createHash(data: string): Promise<string> {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
@@ -16,7 +16,7 @@ function randomBytes(length: number): Uint8Array {
   return array;
 }
 
-// Rate limiters per endpoint (for API routes, not middleware)
+
 const rateLimiters: Record<string, RateLimiterMemory> = {
   default: new RateLimiterMemory({
     points: 100,
@@ -38,11 +38,7 @@ const rateLimiters: Record<string, RateLimiterMemory> = {
   }),
 };
 
-/**
- * Rate limit middleware (for API routes, not Edge middleware)
- * Note: This uses RateLimiterMemory which requires Node.js runtime
- * For Edge middleware, use the edgeRateLimit function in middleware.ts
- */
+
 export async function rateLimit(
   request: NextRequest,
   endpoint: string = "default"
@@ -81,9 +77,7 @@ export async function rateLimit(
   }
 }
 
-/**
- * Verify API key
- */
+
 export async function verifyAPIKey(
   apiKey: string
 ): Promise<{
@@ -92,11 +86,11 @@ export async function verifyAPIKey(
   permissions?: string[];
   error?: string;
 }> {
-  // Hash the API key
+  
   const keyHash = await createHash(apiKey);
 
-  // In production, store API keys in database
-  // For now, check against environment variable
+  
+  
   const validKey = process.env.API_KEY;
   if (validKey) {
     const validHash = await createHash(validKey);
@@ -109,17 +103,17 @@ export async function verifyAPIKey(
     }
   }
 
-  // Check database for API keys (if implemented)
-  // const apiKeyRecord = await prisma.apiKey.findUnique({
-  //   where: { keyHash },
-  // });
-  // if (apiKeyRecord && apiKeyRecord.active) {
-  //   return {
-  //     valid: true,
-  //     keyId: apiKeyRecord.id,
-  //     permissions: apiKeyRecord.permissions,
-  //   };
-  // }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   return {
     valid: false,
@@ -127,9 +121,7 @@ export async function verifyAPIKey(
   };
 }
 
-/**
- * API key authentication middleware
- */
+
 export async function authenticateAPIKey(
   request: NextRequest
 ): Promise<{
@@ -168,9 +160,7 @@ export async function authenticateAPIKey(
   };
 }
 
-/**
- * Encrypt request/response data
- */
+
 export async function encryptRequestData(
   data: string,
   keyId?: string
@@ -178,8 +168,8 @@ export async function encryptRequestData(
   encrypted: string;
   keyId: string;
 }> {
-  // In production, use proper encryption
-  // For now, return base64 encoded
+  
+  
   const encrypted = Buffer.from(data).toString("base64");
   return {
     encrypted,
@@ -187,21 +177,17 @@ export async function encryptRequestData(
   };
 }
 
-/**
- * Decrypt request/response data
- */
+
 export async function decryptRequestData(
   encrypted: string,
   keyId?: string
 ): Promise<string> {
-  // In production, use proper decryption
-  // For now, decode base64
+  
+  
   return Buffer.from(encrypted, "base64").toString("utf8");
 }
 
-/**
- * API versioning middleware
- */
+
 export function checkAPIVersion(
   request: NextRequest,
   minVersion?: string,

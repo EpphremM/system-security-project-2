@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { backupType } = body;
 
-    // Create backup log entry
+    
     const backupLog = await prisma.backupLog.create({
       data: {
         backupType: backupType || "FULL",

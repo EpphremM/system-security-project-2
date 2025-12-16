@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ReportType } from "@/generated/prisma/enums";
 
-/**
- * Generate threat intelligence report
- */
+
 export async function generateThreatIntelligenceReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -25,7 +23,7 @@ export async function generateThreatIntelligenceReport(options?: {
     orderBy: { detectedAt: "desc" },
   });
 
-  // Group by type
+  
   const byType: Record<string, number> = {};
   const bySeverity: Record<string, number> = {};
   const byCountry: Record<string, number> = {};
@@ -40,7 +38,7 @@ export async function generateThreatIntelligenceReport(options?: {
     }
   }
 
-  // Get top IPs
+  
   const ipThreats = threats.filter((t) => t.ipAddress);
   const ipCounts: Record<string, number> = {};
   for (const threat of ipThreats) {
@@ -84,9 +82,7 @@ export async function generateThreatIntelligenceReport(options?: {
   };
 }
 
-/**
- * Generate vulnerability assessment report
- */
+
 export async function generateVulnerabilityAssessmentReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -94,7 +90,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
   const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const endDate = options?.endDate || new Date();
 
-  // Get failed login attempts (potential brute force)
+  
   const failedLogins = await prisma.auditLog.findMany({
     where: {
       logType: "AUTH_FAILURE",
@@ -106,7 +102,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
     },
   });
 
-  // Group by IP
+  
   const ipFailures: Record<string, number> = {};
   for (const log of failedLogins) {
     if (log.ipAddress) {
@@ -119,7 +115,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
     .map(([ip, count]) => ({ ip, failures: count }))
     .sort((a, b) => b.failures - a.failures);
 
-  // Get policy violations
+  
   const policyViolations = await prisma.auditLog.count({
     where: {
       logType: "POLICY_VIOLATION",
@@ -127,7 +123,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
     },
   });
 
-  // Get unauthorized access attempts
+  
   const unauthorizedAccess = await prisma.auditLog.count({
     where: {
       logType: "ACCESS_DENIED",
@@ -135,7 +131,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
     },
   });
 
-  // Get users with excessive permissions
+  
   const usersWithManyPermissions = await prisma.user.findMany({
     include: {
       permissions: true,
@@ -156,7 +152,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
       roles: u.roleAssignments.length,
     }));
 
-  // Get inactive accounts (potential security risk)
+  
   const inactiveThreshold = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
   const inactiveAccounts = await prisma.user.count({
     where: {
@@ -196,9 +192,7 @@ export async function generateVulnerabilityAssessmentReport(options?: {
   };
 }
 
-/**
- * Generate security incident report
- */
+
 export async function generateSecurityIncidentReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -218,16 +212,16 @@ export async function generateSecurityIncidentReport(options?: {
   const incidents = await prisma.securityIncident.findMany({
     where,
     include: {
-      // Include related user if exists
+      
     },
     orderBy: { detectedAt: "desc" },
   });
 
-  // Get incident statistics
+  
   const { getIncidentStatistics } = await import("@/lib/dashboard/incident-response");
   const statistics = await getIncidentStatistics({ startDate, endDate });
 
-  // Group by category
+  
   const byCategory: Record<string, number> = {};
   const bySeverity: Record<string, number> = {};
   const byStatus: Record<string, number> = {};
@@ -266,15 +260,13 @@ export async function generateSecurityIncidentReport(options?: {
       detectedAt: incident.detectedAt,
       resolvedAt: incident.resolvedAt,
       resolutionTime: incident.resolvedAt && incident.detectedAt
-        ? (incident.resolvedAt.getTime() - incident.detectedAt.getTime()) / (1000 * 60 * 60) // hours
+        ? (incident.resolvedAt.getTime() - incident.detectedAt.getTime()) / (1000 * 60 * 60) 
         : null,
     })),
   };
 }
 
-/**
- * Generate risk assessment report
- */
+
 export async function generateRiskAssessmentReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -282,7 +274,7 @@ export async function generateRiskAssessmentReport(options?: {
   const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const endDate = options?.endDate || new Date();
 
-  // Get various risk indicators
+  
   const [threats, incidents, violations, failedLogins] = await Promise.all([
     prisma.threatIntelligence.count({
       where: {
@@ -309,12 +301,12 @@ export async function generateRiskAssessmentReport(options?: {
     }),
   ]);
 
-  // Calculate risk score (0-100)
+  
   let riskScore = 0;
-  riskScore += Math.min(threats * 5, 30); // Threats contribute up to 30 points
-  riskScore += Math.min(incidents * 10, 30); // Incidents contribute up to 30 points
-  riskScore += Math.min(violations * 2, 20); // Violations contribute up to 20 points
-  riskScore += Math.min(failedLogins / 10, 20); // Failed logins contribute up to 20 points
+  riskScore += Math.min(threats * 5, 30); 
+  riskScore += Math.min(incidents * 10, 30); 
+  riskScore += Math.min(violations * 2, 20); 
+  riskScore += Math.min(failedLogins / 10, 20); 
 
   const riskLevel =
     riskScore >= 70
@@ -323,7 +315,7 @@ export async function generateRiskAssessmentReport(options?: {
       ? "MEDIUM"
       : "LOW";
 
-  // Get critical risks
+  
   const criticalThreats = await prisma.threatIntelligence.findMany({
     where: {
       severity: "CRITICAL",

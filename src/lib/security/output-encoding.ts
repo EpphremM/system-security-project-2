@@ -1,6 +1,4 @@
-/**
- * Encode HTML entities to prevent XSS
- */
+
 export function encodeHTML(input: string): string {
   const entityMap: Record<string, string> = {
     "&": "&amp;",

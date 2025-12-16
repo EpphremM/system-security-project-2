@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
 
     const { resourceType, resourceId, content, keywords } = parsed.data;
 
-    // Auto-classify content
+    
     const classification = autoClassifyContent(content, keywords);
 
-    // Check if user can classify to this level
+    
     const userClearance = await getUserClearance(session.user.id);
     if (!userClearance) {
       return NextResponse.json(
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create resource
+    
     let resource = await prisma.resource.findUnique({
       where: {
         type_resourceId: {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!resource) {
-      // Create resource with security label
+      
       const securityLabel = await prisma.securityLabel.findFirst({
         where: {
           classification: classification.level,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       if (securityLabel) {
         labelId = securityLabel.id;
       } else {
-        // Create new security label
+        
         const newLabel = await prisma.securityLabel.create({
           data: {
             name: `${classification.level}_${classification.compartments.join("_")}`,

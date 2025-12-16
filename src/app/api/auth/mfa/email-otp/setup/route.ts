@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const metadata = extractClientMetadata(request);
     const ipAddress = metadata.ipAddress;
 
-    // Send OTP to verify email
+    
     await sendEmailOTP(
       session.user.id,
       session.user.email,
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       ipAddress
     );
 
-    // Enable MFA (email OTP doesn't require additional setup)
+    
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

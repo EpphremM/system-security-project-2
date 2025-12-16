@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const { secret, code } = parsed.data;
 
-    // Verify the TOTP code
+    
     const isValid = verifyTOTPCode(secret, code);
 
     if (!isValid) {
@@ -46,15 +46,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate backup codes
+    
     const backupCodes = await generateBackupCodes();
     const hashedBackupCodes = await Promise.all(
       backupCodes.map((code) => hashBackupCode(code))
     );
 
-    // Enable MFA and store secret
+    
     await prisma.$transaction(async (tx) => {
-      // Update user with MFA secret and enable MFA
+      
       await tx.user.update({
         where: { id: session.user.id },
         data: {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Store backup codes
+      
       await tx.mFABackupCode.createMany({
         data: hashedBackupCodes.map((hashedCode) => ({
           userId: session.user.id,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      backupCodes, // Return plain codes only once - user must save them
+      backupCodes, 
       message: "TOTP MFA enabled successfully",
     });
   } catch (error) {

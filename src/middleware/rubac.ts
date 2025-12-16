@@ -4,9 +4,7 @@ import { evaluateAccessRule } from "@/lib/access/rubac";
 import { extractClientMetadata } from "@/lib/utils/bot-prevention";
 import { prisma } from "@/lib/prisma";
 
-/**
- * RuBAC middleware to enforce rule-based access control
- */
+
 export async function enforceRuBAC(
   request: NextRequest,
   resourceType: string,
@@ -26,7 +24,7 @@ export async function enforceRuBAC(
   }
 
   try {
-    // SUPER_ADMIN bypass: Grant all RuBAC permissions
+    
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { legacyRole: true },
@@ -36,7 +34,7 @@ export async function enforceRuBAC(
       return { allowed: true };
     }
 
-    // Get access policies for this resource and action
+    
     const policies = await prisma.accessPolicy.findMany({
       where: {
         resource: resourceType,
@@ -53,14 +51,14 @@ export async function enforceRuBAC(
     });
 
     if (policies.length === 0) {
-      // No RuBAC policies, allow access
+      
       return { allowed: true };
     }
 
-    // Extract client metadata
+    
     const metadata = extractClientMetadata(request);
 
-    // Get user's device profile if available
+    
     const deviceId = request.headers.get("x-device-id") || undefined;
     let deviceProfile = null;
     if (deviceId) {
@@ -69,7 +67,7 @@ export async function enforceRuBAC(
       });
     }
 
-    // Evaluate each policy rule
+    
     for (const policy of policies) {
       if (!policy.rule || !policy.rule.enabled) {
         continue;

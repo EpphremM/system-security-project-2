@@ -4,7 +4,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
-    secure: false, // Gmail uses TLS on port 587
+    secure: false, 
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD,
@@ -19,9 +19,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
   });
 }
 
-/**
- * Send verification email with OTP
- */
+
 export async function sendVerificationEmail(
   email: string,
   otp: string,
@@ -61,9 +59,7 @@ export async function sendWelcomeEmail(
   );
 }
 
-/**
- * Send account recovery email
- */
+
 export async function sendRecoveryEmail(
   email: string,
   token: string,

@@ -5,9 +5,7 @@ import { logVisitorAction } from "@/lib/utils/logger";
 import { createHash } from "crypto";
 import QRCode from "qrcode";
 
-/**
- * Check in visitor
- */
+
 export async function checkInVisitor(
   visitorId: string,
   checkedInBy: string,
@@ -34,7 +32,7 @@ export async function checkInVisitor(
     throw new Error("Visitor must be approved before check-in");
   }
 
-  // Verify QR code if provided
+  
   if (options?.qrCode && visitor.qrCode) {
     const isValid = verifyQRCode(visitor.qrCode, options.qrCode);
     if (!isValid) {
@@ -42,19 +40,19 @@ export async function checkInVisitor(
     }
   }
 
-  // Check if QR code is expired
+  
   if (visitor.qrCodeExpiresAt && visitor.qrCodeExpiresAt < new Date()) {
     throw new Error("QR code has expired");
   }
 
-  // Generate badge expiration (2 hours after scheduled end or 8 hours from now, whichever is later)
+  
   const badgeExpiresAt = new Date();
   badgeExpiresAt.setHours(badgeExpiresAt.getHours() + 8);
   if (visitor.scheduledEnd > badgeExpiresAt) {
     badgeExpiresAt.setTime(visitor.scheduledEnd.getTime() + 2 * 60 * 60 * 1000);
   }
 
-  // Update visitor
+  
   await prisma.visitor.update({
     where: { id: visitorId },
     data: {
@@ -67,13 +65,13 @@ export async function checkInVisitor(
     },
   });
 
-  // Generate QR code URL for badge
+  
   const qrCodeUrl = await generateQRCodeImage(visitor.qrCode || visitor.id);
 
-  // Notify host
+  
   await notifyHostOfArrival(visitor);
 
-  // Log check-in
+  
   await logVisitorAction(visitorId, "CHECKED_IN", checkedInBy, "Visitor checked in");
 
   return {

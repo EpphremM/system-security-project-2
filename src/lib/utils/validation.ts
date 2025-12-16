@@ -1,7 +1,7 @@
 import { z } from "zod";
 import validator from "validator";
 
-// Enums for validation
+
 const VisitPurposeEnum = z.enum([
   "MEETING",
   "INTERVIEW",
@@ -40,9 +40,9 @@ const DataCategoryEnum = z.enum([
   "CLASSIFIED",
 ]);
 
-// Visitor validation schemas
+
 export const visitorSchema = z.object({
-  // Personal info
+  
   firstName: z.string().min(1, "First name is required").max(100),
   lastName: z.string().min(1, "Last name is required").max(100),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
@@ -54,26 +54,26 @@ export const visitorSchema = z.object({
     }),
   company: z.string().min(1, "Company is required").max(200),
   
-  // Visit details
+  
   purpose: VisitPurposeEnum,
   hostId: z.string().uuid("Invalid host ID"),
   
-  // Security classification
+  
   securityLabel: SecurityLevelEnum.default("PUBLIC"),
   dataCategory: DataCategoryEnum.default("GENERAL"),
   
-  // Visit timing
+  
   scheduledDate: z.date(),
   scheduledStart: z.date(),
   scheduledEnd: z.date().refine(
     (end) => {
-      // This will be validated against scheduledStart in the application
+      
       return true;
     },
     { message: "End time must be after start time" }
   ),
   
-  // Documents (optional)
+  
   documentId: z.string().optional(),
 }).refine(
   (data) => data.scheduledEnd > data.scheduledStart,
@@ -103,7 +103,7 @@ export const checkOutSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
-// User validation schemas
+
 export const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   name: z.string().min(1, "Name is required").max(100).optional(),
@@ -117,7 +117,7 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-// Export enum types
+
 export type VisitPurpose = z.infer<typeof VisitPurposeEnum>;
 export type VisitStatus = z.infer<typeof VisitStatusEnum>;
 export type SecurityLevel = z.infer<typeof SecurityLevelEnum>;

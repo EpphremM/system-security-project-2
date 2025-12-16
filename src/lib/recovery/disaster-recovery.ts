@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SystemType, RecoveryStatus } from "@/generated/prisma/enums";
 
-/**
- * Create disaster recovery plan
- */
+
 export async function createRecoveryPlan(
   name: string,
   systemType: SystemType,
@@ -19,7 +17,7 @@ export async function createRecoveryPlan(
     regulatoryProcedures?: any;
   }
 ): Promise<string> {
-  // Set RTO based on system type if not provided
+  
   const rto = options?.rto || getDefaultRTO(systemType);
   const rpo = options?.rpo || getDefaultRPO(systemType);
 
@@ -43,41 +41,35 @@ export async function createRecoveryPlan(
   return plan.id;
 }
 
-/**
- * Get default RTO based on system type
- */
+
 function getDefaultRTO(systemType: SystemType): number {
   switch (systemType) {
     case "CRITICAL":
-      return 4; // 4 hours
+      return 4; 
     case "IMPORTANT":
-      return 24; // 24 hours
+      return 24; 
     case "NON_CRITICAL":
-      return 72; // 72 hours
+      return 72; 
     default:
       return 24;
   }
 }
 
-/**
- * Get default RPO based on system type
- */
+
 function getDefaultRPO(systemType: SystemType): number {
   switch (systemType) {
     case "CRITICAL":
-      return 1; // 1 hour
+      return 1; 
     case "IMPORTANT":
-      return 4; // 4 hours
+      return 4; 
     case "NON_CRITICAL":
-      return 24; // 24 hours
+      return 24; 
     default:
       return 4;
   }
 }
 
-/**
- * Execute disaster recovery plan
- */
+
 export async function executeRecoveryPlan(
   planId: string,
   initiatedBy: string
@@ -95,7 +87,7 @@ export async function executeRecoveryPlan(
     throw new Error("Recovery plan is disabled");
   }
 
-  // Create execution record
+  
   const execution = await prisma.recoveryExecution.create({
     data: {
       planId,
@@ -111,7 +103,7 @@ export async function executeRecoveryPlan(
   });
 
   try {
-    // Execute recovery procedures
+    
     const procedures = Array.isArray(plan.procedures)
       ? plan.procedures
       : [plan.procedures];
@@ -122,7 +114,7 @@ export async function executeRecoveryPlan(
       const step = procedures[i];
       
       try {
-        // Execute step
+        
         await executeRecoveryStep(step, plan);
 
         executionLog.push({

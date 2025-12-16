@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       description,
     });
 
-    // Generate sharing URL
+    
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const sharingUrl = `${baseUrl}/share/${link.token}`;
 

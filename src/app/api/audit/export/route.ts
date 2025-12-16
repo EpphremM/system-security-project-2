@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
-      take: 10000, // Limit export size
+      take: 10000, 
       include: {
         user: {
           select: {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Convert to CSV
+    
     const headers = [
       "Timestamp",
       "User",

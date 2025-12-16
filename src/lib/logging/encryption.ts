@@ -3,20 +3,18 @@ import { prisma } from "@/lib/prisma";
 import { LogCategory } from "@/generated/prisma/enums";
 
 const ALGORITHM = "aes-256-gcm";
-const KEY_LENGTH = 32; // 256 bits
-const IV_LENGTH = 12; // 96 bits for GCM
-const TAG_LENGTH = 16; // 128 bits for GCM
+const KEY_LENGTH = 32; 
+const IV_LENGTH = 12; 
+const TAG_LENGTH = 16; 
 
-// Master key for encrypting key material (should be in HSM in production)
+
 const MASTER_KEY = process.env.MASTER_ENCRYPTION_KEY || randomBytes(KEY_LENGTH).toString("hex");
 
-/**
- * Get or create active encryption key for category
- */
+
 export async function getActiveKey(category: LogCategory): Promise<string> {
   const now = new Date();
   
-  // Find active key that hasn't expired
+  
   let key = await prisma.encryptionKey.findFirst({
     where: {
       category,
@@ -30,26 +28,24 @@ export async function getActiveKey(category: LogCategory): Promise<string> {
     },
   });
 
-  // If no active key or key expires soon (within 7 days), create new one
+  
   if (!key || (key.expiresAt.getTime() - now.getTime()) < 7 * 24 * 60 * 60 * 1000) {
     key = await createNewKey(category);
   }
 
-  // Decrypt key material
+  
   return decryptKeyMaterial(key.keyMaterial);
 }
 
-/**
- * Create new encryption key for category
- */
+
 async function createNewKey(category: LogCategory) {
-  // Generate new key
+  
   const keyMaterial = randomBytes(KEY_LENGTH);
   
-  // Encrypt key material with master key
+  
   const encryptedKeyMaterial = encryptKeyMaterial(keyMaterial.toString("hex"));
   
-  // Deactivate old keys for this category
+  
   await prisma.encryptionKey.updateMany({
     where: {
       category,
@@ -61,9 +57,9 @@ async function createNewKey(category: LogCategory) {
     },
   });
 
-  // Create new key
+  
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 90); // 90 days
+  expiresAt.setDate(expiresAt.getDate() + 90); 
 
   return await prisma.encryptionKey.create({
     data: {

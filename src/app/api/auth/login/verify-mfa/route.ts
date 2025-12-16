@@ -20,13 +20,11 @@ const verifyMFASchema = z.object({
   method: z.enum(["totp", "backup_code", "emergency_token", "email_otp", "webauthn"]),
   code: z.string().optional(),
   token: z.string().optional(),
-  response: z.any().optional(), // AuthenticationResponseJSON for WebAuthn
-  challenge: z.string().optional(), // For WebAuthn
+  response: z.any().optional(), 
+  challenge: z.string().optional(), 
 });
 
-/**
- * Complete login with MFA verification
- */
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -41,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const { email, password, method, code, token, response, challenge } = parsed.data;
 
-    // First verify password (this will also check lockout)
+    
     const signInResult = await signIn("credentials", {
       email,
       password,
@@ -55,7 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user with MFA info
+    
     const user = await prisma.user.findUnique({
       where: { email },
       include: { webauthnDevices: true },
@@ -68,7 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify MFA based on method
+    
     let verified = false;
 
     switch (method) {
@@ -180,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verified) {
-      // Log failed MFA attempt
+      
       await prisma.auditLog.create({
         data: {
           userId: user.id,
@@ -200,8 +198,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // MFA verified - complete login by signing in again
-    // The session will be created by NextAuth
+    
+    
     const finalSignIn = await signIn("credentials", {
       email,
       password,
@@ -215,7 +213,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log successful MFA verification and login
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -242,9 +240,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get WebAuthn authentication options for login
- */
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

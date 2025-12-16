@@ -8,11 +8,9 @@ interface AnomalyRule {
   description: string;
 }
 
-/**
- * Detect anomalies in logs
- */
+
 export async function detectAnomalies(
-  timeWindow: number = 3600 // 1 hour default
+  timeWindow: number = 3600 
 ): Promise<{
   anomalies: any[];
   count: number;
@@ -20,7 +18,7 @@ export async function detectAnomalies(
   const now = new Date();
   const startTime = new Date(now.getTime() - timeWindow * 1000);
 
-  // Get recent logs
+  
   const logs = await prisma.auditLog.findMany({
     where: {
       createdAt: {
@@ -39,7 +37,7 @@ export async function detectAnomalies(
 
   const anomalies: any[] = [];
 
-  // Define anomaly rules
+  
   const rules: AnomalyRule[] = [
     {
       name: "Multiple Failed Auth Attempts",
@@ -101,7 +99,7 @@ export async function detectAnomalies(
     {
       name: "Unusual User Activity",
       condition: (logs) => {
-        // Check if single user has unusually high activity
+        
         const userActivity: Record<string, number> = {};
         for (const log of logs) {
           if (log.userId) {
@@ -109,7 +107,7 @@ export async function detectAnomalies(
           }
         }
         const maxActivity = Math.max(...Object.values(userActivity), 0);
-        return maxActivity > 100; // More than 100 actions in time window
+        return maxActivity > 100; 
       },
       severity: "MEDIUM",
       description: "Unusually high activity from single user",
@@ -127,10 +125,10 @@ export async function detectAnomalies(
     },
   ];
 
-  // Check each rule
+  
   for (const rule of rules) {
     if (rule.condition(logs)) {
-      // Create anomaly record
+      
       const anomaly = await prisma.logAnomaly.create({
         data: {
           anomalyType: rule.name,
@@ -154,9 +152,7 @@ export async function detectAnomalies(
   };
 }
 
-/**
- * Get recent anomalies
- */
+
 export async function getRecentAnomalies(
   limit: number = 50,
   severity?: string
@@ -178,9 +174,7 @@ export async function getRecentAnomalies(
   });
 }
 
-/**
- * Resolve anomaly
- */
+
 export async function resolveAnomaly(
   anomalyId: string,
   resolvedBy: string,
@@ -199,12 +193,10 @@ export async function resolveAnomaly(
   });
 }
 
-/**
- * Machine learning-based anomaly detection (placeholder)
- */
+
 export async function detectMLAnomalies(logs: any[]): Promise<any[]> {
-  // This would use a machine learning model in production
-  // For now, return empty array
+  
+  
   return [];
 }
 

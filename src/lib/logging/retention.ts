@@ -1,12 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { calculateRetentionDate, logDataDeletedRetention } from "./compliance";
 
-/**
- * Enforce log retention policies
- * Should be called by a scheduled job (cron)
- */
+
 export async function enforceRetentionPolicies() {
-  // Find logs that have passed their retention date
+  
   const expiredLogs = await prisma.auditLog.findMany({
     where: {
       retentionUntil: {
@@ -28,7 +25,7 @@ export async function enforceRetentionPolicies() {
     };
   }
 
-  // Group by resource type for logging
+  
   const resourceGroups: Record<string, string[]> = {};
   for (const log of expiredLogs) {
     if (!resourceGroups[log.resource]) {
@@ -37,7 +34,7 @@ export async function enforceRetentionPolicies() {
     resourceGroups[log.resource].push(log.id);
   }
 
-  // Delete expired logs
+  
   const deleteResult = await prisma.auditLog.deleteMany({
     where: {
       id: {
@@ -46,7 +43,7 @@ export async function enforceRetentionPolicies() {
     },
   });
 
-  // Log the deletion
+  
   for (const [resource, resourceIds] of Object.entries(resourceGroups)) {
     await logDataDeletedRetention(
       resource,
@@ -62,11 +59,9 @@ export async function enforceRetentionPolicies() {
   };
 }
 
-/**
- * Update retention dates for logs based on compliance tags
- */
+
 export async function updateRetentionDates() {
-  // Find logs without retention dates
+  
   const logsWithoutRetention = await prisma.auditLog.findMany({
     where: {
       retentionUntil: null,
@@ -94,9 +89,7 @@ export async function updateRetentionDates() {
   };
 }
 
-/**
- * Set retention date for a specific log
- */
+
 export async function setRetentionDate(
   logId: string,
   retentionDate: Date

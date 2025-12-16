@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get visits where the current user is the host
+    
     const visits = await prisma.visitor.findMany({
       where: {
         hostId: session.user.id,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Format the visits to match frontend expectations
+    
     const formattedVisits = visits.map((visit) => ({
       id: visit.id,
       firstName: visit.firstName,
@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json({
-      recentVisits: formattedVisits, // Frontend expects 'recentVisits'
-      visits: formattedVisits, // Also include 'visits' for compatibility
+      recentVisits: formattedVisits, 
+      visits: formattedVisits, 
     });
   } catch (error) {
     console.error("Get my visits error:", error);

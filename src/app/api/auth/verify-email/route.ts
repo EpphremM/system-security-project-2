@@ -16,7 +16,7 @@ const verifySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    
     const ip = request.ip ?? request.headers.get("x-forwarded-for") ?? "unknown";
     try {
       await authRateLimiter.consume(ip);
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const { token, email } = parsed.data;
 
-    // Find user
+    
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify token
+    
     const isValid = await verifyToken(email, token);
     if (!isValid) {
       return NextResponse.json(
@@ -67,16 +67,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark email as verified
+    
     await markEmailAsVerified(user.id);
 
-    // Delete verification token
+    
     await deleteVerificationToken(email, token);
 
-    // Send welcome email
+    
     await sendWelcomeEmail(user.email, user.name || undefined);
 
-    // Log verification
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
 
 

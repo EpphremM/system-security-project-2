@@ -3,9 +3,7 @@ import { AlertSeverity, AlertCategory } from "@/generated/prisma/enums";
 import { aggregateLogs, getLogStatistics } from "@/lib/logging/aggregation";
 import { getRecentAnomalies } from "@/lib/logging/anomaly-detection";
 
-/**
- * Generate dashboard alerts
- */
+
 export async function generateDashboardAlerts(): Promise<{
   alerts: any[];
   count: number;
@@ -15,31 +13,31 @@ export async function generateDashboardAlerts(): Promise<{
   const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // 1. Unusual access patterns
+  
   const unusualAccess = await detectUnusualAccessPatterns(last24Hours);
   if (unusualAccess) {
     alerts.push(unusualAccess);
   }
 
-  // 2. Policy violation trends
+  
   const policyViolations = await detectPolicyViolationTrends(last7Days);
   if (policyViolations) {
     alerts.push(policyViolations);
   }
 
-  // 3. Performance degradation
+  
   const performance = await detectPerformanceDegradation(last24Hours);
   if (performance) {
     alerts.push(performance);
   }
 
-  // 4. Compliance gaps
+  
   const compliance = await detectComplianceGaps(last7Days);
   if (compliance) {
     alerts.push(compliance);
   }
 
-  // Save alerts to database
+  
   for (const alert of alerts) {
     await prisma.dashboardAlert.create({
       data: alert,
@@ -52,18 +50,16 @@ export async function generateDashboardAlerts(): Promise<{
   };
 }
 
-/**
- * Detect unusual access patterns
- */
+
 async function detectUnusualAccessPatterns(
   since: Date
 ): Promise<any | null> {
   const stats = await getLogStatistics(since, new Date(), "USER_ACTIVITY");
 
-  // Check for unusual patterns
+  
   const unusualPatterns: string[] = [];
 
-  // High number of access denials
+  
   if (stats.accessDenied > 50) {
     unusualPatterns.push(`High number of access denials: ${stats.accessDenied}`);
   }

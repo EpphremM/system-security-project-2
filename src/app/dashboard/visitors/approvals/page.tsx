@@ -96,7 +96,7 @@ export default function VisitorApprovalsPage() {
         setActionDialogOpen(false);
         setSelectedApproval(null);
         setNotes("");
-        fetchApprovals(); // Refresh list
+        fetchApprovals(); 
       } else {
         const error = await response.json();
         alert(error.error || "Failed to process approval");

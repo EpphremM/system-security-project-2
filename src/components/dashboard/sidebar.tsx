@@ -53,7 +53,7 @@ export function DashboardSidebar() {
               <ul role="list" className="-mx-2 space-y-1">
                 {navigation
                   .filter((item) => {
-                    // Filter by role
+                    
                     if (item.roles.includes("*")) return true;
                     return item.roles.includes(userRole) || canAccessRoute(userRole, item.href);
                   })

@@ -28,7 +28,7 @@ export const authConfig: NextAuthConfig = {
 
       if (isOnDashboard) {
         if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+        return false; 
       } else if (isOnAuth) {
         if (isLoggedIn) {
           const url = new URL("/dashboard", nextUrl);
@@ -70,8 +70,8 @@ export const authConfig: NextAuthConfig = {
 
         const { email, password } = parsedCredentials.data;
 
-        // Check account lockout
-        // Note: IP-based lockout is checked in the API route handler
+        
+        
         const accountLockout = await checkAccountLockout(email);
         if (accountLockout.locked) {
           throw new Error(`Account locked. Try again in ${accountLockout.retryAfter} seconds.`);

@@ -77,7 +77,7 @@ export function MFASetupModal({ open, onOpenChange, onComplete }: MFASetupModalP
         return;
       }
 
-      // Get backup codes
+      
       const backupResponse = await fetch("/api/auth/mfa/backup-codes", {
         method: "GET",
       });
@@ -117,7 +117,7 @@ export function MFASetupModal({ open, onOpenChange, onComplete }: MFASetupModalP
     URL.revokeObjectURL(url);
   };
 
-  // Fetch setup when modal opens
+  
   useState(() => {
     if (open && !qrCode) {
       fetchTOTPSetup();

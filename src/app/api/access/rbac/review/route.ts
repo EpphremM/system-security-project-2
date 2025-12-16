@@ -59,9 +59,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get roles requiring review
- */
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

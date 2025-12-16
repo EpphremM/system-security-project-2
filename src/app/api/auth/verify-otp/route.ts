@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const { email, otp } = parsed.data;
 
-    // Verify OTP
+    
     const isValid = await verifyOTP(email, otp);
 
     if (!isValid) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
+    
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -44,10 +44,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark email as verified
+    
     await markEmailAsVerified(user.id);
 
-    // Log verification (audit)
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,

@@ -12,13 +12,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get client IP
+    
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded ? forwarded.split(",")[0] : request.headers.get("x-real-ip") || "unknown";
 
     return NextResponse.json({
       ip,
-      location: "Unknown", // Would use geolocation service in production
+      location: "Unknown", 
     });
   } catch (error) {
     console.error("Check location error:", error);

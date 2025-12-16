@@ -2,9 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export type PermissionType = "read" | "write" | "execute" | "delete" | "share";
 
-/**
- * Check if user is resource owner
- */
+
 export async function isResourceOwner(
   userId: string,
   resourceType: string,
@@ -25,16 +23,14 @@ export async function isResourceOwner(
   return resource?.ownerId === userId;
 }
 
-/**
- * Check if user has permission on resource
- */
+
 export async function hasPermission(
   userId: string,
   resourceType: string,
   resourceId: string,
   permission: PermissionType
 ): Promise<{ allowed: boolean; reason?: string; inherited?: boolean }> {
-  // SUPER_ADMIN bypass: Grant all DAC permissions
+  
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { legacyRole: true },
@@ -44,13 +40,13 @@ export async function hasPermission(
     return { allowed: true, reason: "SUPER_ADMIN bypass" };
   }
 
-  // Check if user is owner (owners have all permissions)
+  
   const isOwner = await isResourceOwner(userId, resourceType, resourceId);
   if (isOwner) {
     return { allowed: true };
   }
 
-  // Get resource with permissions
+  
   const resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -88,7 +84,7 @@ export async function hasPermission(
     return { allowed: false, reason: "Resource not found" };
   }
 
-  // Check direct permissions
+  
   const directPermission = resource.sharedPermissions.find((p) => {
     switch (permission) {
       case "read":
@@ -110,7 +106,7 @@ export async function hasPermission(
     return { allowed: true, inherited: directPermission.inherited };
   }
 
-  // Check inherited permissions from parent
+  
   if (resource.parent) {
     const inheritedPermission = resource.parent.sharedPermissions.find((p) => {
       switch (permission) {
@@ -137,9 +133,7 @@ export async function hasPermission(
   return { allowed: false, reason: "No permission granted" };
 }
 
-/**
- * Grant permission to user
- */
+
 export async function grantPermission(
   resourceType: string,
   resourceId: string,
@@ -155,13 +149,13 @@ export async function grantPermission(
   expiresAt?: Date,
   reason?: string
 ) {
-  // Verify grantor has share permission
+  
   const canShare = await hasPermission(grantedBy, resourceType, resourceId, "share");
   if (!canShare.allowed && !(await isResourceOwner(grantedBy, resourceType, resourceId))) {
     throw new Error("You do not have permission to share this resource");
   }
 
-  // Get or create resource
+  
   let resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -172,18 +166,18 @@ export async function grantPermission(
   });
 
   if (!resource) {
-    // Create resource (owner will be set by caller)
+    
     resource = await prisma.resource.create({
       data: {
         type: resourceType,
         resourceId,
         ownerId: grantedBy,
-        securityLabelId: "", // Will need to be set
+        securityLabelId: "", 
       },
     });
   }
 
-  // Check if permission already exists
+  
   const existing = await prisma.resourcePermission.findFirst({
     where: {
       resourceId: resource.id,
@@ -192,7 +186,7 @@ export async function grantPermission(
   });
 
   if (existing) {
-    // Update existing permission
+    
     return await prisma.resourcePermission.update({
       where: { id: existing.id },
       data: {
@@ -208,7 +202,7 @@ export async function grantPermission(
     });
   }
 
-  // Create new permission
+  
   return await prisma.resourcePermission.create({
     data: {
       resourceId: resource.id,
@@ -225,16 +219,14 @@ export async function grantPermission(
   });
 }
 
-/**
- * Revoke permission from user
- */
+
 export async function revokePermission(
   resourceType: string,
   resourceId: string,
   userId: string,
   revokedBy: string
 ) {
-  // Verify revoker has share permission or is owner
+  
   const canShare = await hasPermission(revokedBy, resourceType, resourceId, "share");
   if (!canShare.allowed && !(await isResourceOwner(revokedBy, resourceType, resourceId))) {
     throw new Error("You do not have permission to revoke access");
@@ -260,7 +252,7 @@ export async function revokePermission(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: revokedBy,
@@ -275,9 +267,7 @@ export async function revokePermission(
   });
 }
 
-/**
- * Request ownership transfer
- */
+
 export async function requestOwnershipTransfer(
   resourceType: string,
   resourceId: string,
@@ -298,7 +288,7 @@ export async function requestOwnershipTransfer(
     throw new Error("Resource not found");
   }
 
-  // Check if requester is owner or has share permission
+  
   const isOwner = resource.ownerId === requestedBy;
   const canShare = await hasPermission(requestedBy, resourceType, resourceId, "share");
 
@@ -306,7 +296,7 @@ export async function requestOwnershipTransfer(
     throw new Error("You do not have permission to transfer ownership");
   }
 
-  // Check for existing pending transfer
+  
   const existing = await prisma.ownershipTransfer.findFirst({
     where: {
       resourceId: resource.id,
@@ -330,9 +320,7 @@ export async function requestOwnershipTransfer(
   });
 }
 
-/**
- * Approve ownership transfer
- */
+
 export async function approveOwnershipTransfer(
   transferId: string,
   approvedBy: string
@@ -346,7 +334,7 @@ export async function approveOwnershipTransfer(
     throw new Error("Transfer request not found");
   }
 
-  // Only current owner can approve
+  
   if (transfer.resource.ownerId !== approvedBy) {
     throw new Error("Only the current owner can approve the transfer");
   }
@@ -355,7 +343,7 @@ export async function approveOwnershipTransfer(
     throw new Error("Transfer is not pending");
   }
 
-  // Update resource owner
+  
   await prisma.resource.update({
     where: { id: transfer.resourceId },
     data: {
@@ -363,7 +351,7 @@ export async function approveOwnershipTransfer(
     },
   });
 
-  // Update transfer status
+  
   const updated = await prisma.ownershipTransfer.update({
     where: { id: transferId },
     data: {
@@ -374,7 +362,7 @@ export async function approveOwnershipTransfer(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: approvedBy,
@@ -392,9 +380,7 @@ export async function approveOwnershipTransfer(
   return updated;
 }
 
-/**
- * Reject ownership transfer
- */
+
 export async function rejectOwnershipTransfer(
   transferId: string,
   rejectedBy: string,
@@ -408,7 +394,7 @@ export async function rejectOwnershipTransfer(
     throw new Error("Transfer request not found");
   }
 
-  // Only current owner can reject
+  
   const resource = await prisma.resource.findUnique({
     where: { id: transfer.resourceId },
   });
@@ -427,9 +413,7 @@ export async function rejectOwnershipTransfer(
   });
 }
 
-/**
- * Get all permissions for a resource
- */
+
 export async function getResourcePermissions(
   resourceType: string,
   resourceId: string
@@ -444,7 +428,7 @@ export async function getResourcePermissions(
     include: {
       sharedPermissions: {
         where: {
-          userId: { not: null }, // Only user permissions (not group)
+          userId: { not: null }, 
         },
         include: {
           user: {
@@ -472,22 +456,20 @@ export async function getResourcePermissions(
   return resource;
 }
 
-/**
- * Inherit permissions from parent resource
- */
+
 export async function inheritPermissions(
   resourceId: string,
   parentResourceId: string
 ) {
-  // Get parent permissions
+  
   const parentPermissions = await prisma.resourcePermission.findMany({
     where: {
       resourceId: parentResourceId,
-      inherited: false, // Only inherit non-inherited permissions
+      inherited: false, 
     },
   });
 
-  // Create inherited permissions for child
+  
   const inheritedPermissions = await Promise.all(
     parentPermissions.map((parentPerm) =>
       prisma.resourcePermission.create({

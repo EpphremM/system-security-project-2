@@ -8,7 +8,7 @@ const createSchema = z.object({
   description: z.string().optional(),
   resource: z.string(),
   action: z.string(),
-  attributes: z.any(), // Attribute conditions
+  attributes: z.any(), 
   priority: z.number().int().optional(),
   enabled: z.boolean().optional(),
 });
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

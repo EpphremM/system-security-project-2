@@ -40,7 +40,7 @@ export function VisitorDashboard() {
         const data = await response.json();
         setVisits(data.visits || []);
         
-        // Calculate stats
+        
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
@@ -126,7 +126,7 @@ export function VisitorDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -1,10 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
 
 generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
-  // Enable preview features for better performance
+  
   previewFeatures = ["postgresqlExtensions", "fullTextSearchPostgres"]
 }
 
@@ -12,9 +12,9 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================================================
-// USER AND AUTHENTICATION MODELS
-// ============================================================================
+
+
+
 
 model User {
   id                String        @id @default(uuid())
@@ -22,47 +22,47 @@ model User {
   emailVerified     DateTime?
   name              String?
   department        String
-  roleId            String? // Link to Role model for RBAC
+  roleId            String? 
   role              Role?         @relation(fields: [roleId], references: [id])
   securityClearance SecurityLevel @default(INTERNAL)
 
-  // Enhanced security fields
-  passwordHash    String? // Nullable for passwordless auth
+  
+  passwordHash    String? 
   mfaSecret       String?
   mfaEnabled      Boolean          @default(false)
   webauthnDevices WebAuthnDevice[]
 
-  // Password security
+  
   passwordHistory     PasswordHistory[]
   failedLoginAttempts Int               @default(0)
   accountLockedUntil  DateTime?
   lastFailedLoginAt   DateTime?
 
-  // Next.js 16 specific
+  
   preferredAuthMethod AuthMethod @default(PASSWORD)
-  sessionVersion      Int        @default(1) // For session invalidation
+  sessionVersion      Int        @default(1) 
 
-  // MAC: Mandatory Access Control - Clearance
+  
   clearance        UserClearance?
   clearanceHistory ClearanceHistory[]
-  trustedSubject   Boolean            @default(false) // Admin exception to Bell-LaPadula
+  trustedSubject   Boolean            @default(false) 
 
-  // Timestamps with timezone
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   lastLoginAt       DateTime?
   passwordChangedAt DateTime?
-  passwordExpiresAt DateTime? // Password maximum age: 90 days
+  passwordExpiresAt DateTime? 
 
-  // Legacy fields (for backward compatibility)
+  
   image            String?
   twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
   twoFactorSecret  String? @map("two_factor_secret")
 
-  // Legacy role field (for backward compatibility)
+  
   legacyRole UserRole? @default(USER)
 
-  // Relations
+  
   visitors              Visitor[]
   approvedVisitors      Visitor[]                @relation("approvedBy")
   accessPolicies        AccessPolicy[]           @relation("PolicyOwner")
@@ -72,7 +72,7 @@ model User {
   accounts              Account[]
   accessLogs            AccessLog[]
   visitorLogs           VisitorLog[]
-  ownedResources        Resource[]               @relation("ResourceOwner") // DAC: Discretionary Access Control
+  ownedResources        Resource[]               @relation("ResourceOwner") 
   createdBackups        BackupLog[]              @relation("BackupCreator")
   updatedConfigs        SystemConfig[]           @relation("ConfigUpdater")
   mfaBackupCodes        MFABackupCode[]
@@ -89,7 +89,7 @@ model User {
   userAttributes        UserAttribute[]
   approvalRequests      VisitorApprovalRequest[] @relation("ApprovalHost")
 
-  // Indexes for performance
+  
   @@index([email])
   @@index([department, legacyRole])
   @@index([roleId])
@@ -107,7 +107,7 @@ model WebAuthnDevice {
   credentialId String   @unique
   publicKey    String   @db.Text
   counter      Int      @default(0)
-  transports   String[] // WebAuthn transport types
+  transports   String[] 
   deviceName   String?
 
   createdAt  DateTime  @default(now())
@@ -139,9 +139,9 @@ model Account {
   @@map("accounts")
 }
 
-// ============================================================================
-// SESSION MANAGEMENT (Enhanced Security)
-// ============================================================================
+
+
+
 
 model Session {
   id           String   @id @default(uuid())
@@ -150,16 +150,16 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Enhanced session tracking and security
+  
   ipAddress         String?
   userAgent         String?
-  deviceFingerprint String? // Device identification
-  location          String? // Geographic location
+  deviceFingerprint String? 
+  location          String? 
   isActive          Boolean   @default(true)
-  revokedAt         DateTime? // For manual revocation
-  revokedReason     String? // Reason for revocation
+  revokedAt         DateTime? 
+  revokedReason     String? 
 
-  // Session security attributes
+  
   requiresMFA    Boolean  @default(false)
   mfaVerified    Boolean  @default(false)
   lastActivityAt DateTime @default(now())
@@ -185,37 +185,37 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ============================================================================
-// ROLE-BASED ACCESS CONTROL (RBAC)
-// ============================================================================
+
+
+
 
 model Role {
   id          String  @id @default(uuid())
   name        String  @unique
   description String? @db.Text
-  level       Int     @default(0) // Hierarchical level (higher = more privileges)
+  level       Int     @default(0) 
 
-  // Hierarchical role structure
+  
   parentId String?
   parent   Role?   @relation("RoleHierarchy", fields: [parentId], references: [id])
   children Role[]  @relation("RoleHierarchy")
 
-  // Role permissions
+  
   permissions RolePermission[]
 
-  // Access policies requiring this role
+  
   accessPolicies AccessPolicy[] @relation("PolicyRole")
 
-  // Users with this role
+  
   users           User[]
   roleAssignments RoleAssignment[]
 
-  // Role lifecycle
+  
   roleRequests RoleRequest[]
   roleReviews  RoleReview[]
 
-  // System flags
-  isSystem Boolean @default(false) // System roles cannot be deleted
+  
+  isSystem Boolean @default(false) 
   enabled  Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -227,18 +227,18 @@ model Role {
   @@map("roles")
 }
 
-// ============================================================================
-// PERMISSION SYSTEM (ACL - Access Control List)
-// ============================================================================
+
+
+
 
 model Permission {
   id          String  @id @default(uuid())
   name        String  @unique
-  resource    String // Resource type (e.g., "visitor", "area", "document")
-  action      String // Action type (e.g., "read", "write", "delete", "execute")
+  resource    String 
+  action      String 
   description String? @db.Text
 
-  // Relations
+  
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
 
@@ -258,9 +258,9 @@ model RolePermission {
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  // Permission modifiers
-  granted    Boolean @default(true) // true = grant, false = deny
-  conditions Json? // Additional conditions for this permission
+  
+  granted    Boolean @default(true) 
+  conditions Json? 
 
   createdAt DateTime @default(now())
 
@@ -277,10 +277,10 @@ model UserPermission {
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  // Permission modifiers
+  
   granted    Boolean   @default(true)
-  conditions Json? // Additional conditions
-  expiresAt  DateTime? // Temporary permissions
+  conditions Json? 
+  expiresAt  DateTime? 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -292,47 +292,47 @@ model UserPermission {
   @@map("user_permissions")
 }
 
-// ============================================================================
-// ACCESS POLICY SYSTEM (MAC, DAC, RBAC, RuBAC, ABAC)
-// ============================================================================
+
+
+
 
 model AccessPolicy {
   id          String  @id @default(uuid())
   name        String
   description String? @db.Text
 
-  // Policy type: MAC, DAC, RBAC, RuBAC, ABAC
+  
   policyType PolicyType
 
-  // Resource and action
-  resource String // Resource type (e.g., "visitor", "area", "document")
-  action   String // Action type (e.g., "read", "write", "delete")
+  
+  resource String 
+  action   String 
 
-  // MAC (Mandatory Access Control) - Security labels
-  minSecurityLabel SecurityLevel? // Minimum security clearance required
-  maxSecurityLabel SecurityLevel? // Maximum security clearance allowed
+  
+  minSecurityLabel SecurityLevel? 
+  maxSecurityLabel SecurityLevel? 
 
-  // DAC (Discretionary Access Control) - Resource ownership
-  ownerId String? // Resource owner (for DAC)
+  
+  ownerId String? 
   owner   User?   @relation("PolicyOwner", fields: [ownerId], references: [id])
 
-  // RBAC (Role-Based Access Control) - Role requirements
+  
   requiredRoleId String?
   requiredRole   Role?   @relation("PolicyRole", fields: [requiredRoleId], references: [id])
 
-  // RuBAC (Rule-Based Access Control) - Rule conditions
-  rules  Json? // Rule conditions (e.g., time-based, location-based)
-  ruleId String? // Associated AccessRule
+  
+  rules  Json? 
+  ruleId String? 
   rule   AccessRule? @relation(fields: [ruleId], references: [id])
 
-  // ABAC (Attribute-Based Access Control) - Attribute conditions
-  attributes Json? // Attribute conditions (e.g., department, clearance level)
+  
+  attributes Json? 
 
-  // General conditions (for complex policies)
-  conditions Json? // Additional conditional access rules
+  
+  conditions Json? 
 
-  // Policy metadata
-  priority Int     @default(0) // Higher priority policies evaluated first
+  
+  priority Int     @default(0) 
   enabled  Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -347,32 +347,32 @@ model AccessPolicy {
   @@map("access_policies")
 }
 
-// ============================================================================
-// SECURITY LABEL SYSTEM (Data Classification)
-// ============================================================================
+
+
+
 
 model SecurityLabel {
   id          String  @id @default(uuid())
   name        String  @unique
-  level       Int     @default(0) // Numeric level for comparison
+  level       Int     @default(0) 
   description String? @db.Text
 
-  // Classification attributes
+  
   classification SecurityLevel
   dataCategory   DataCategory
 
-  // MAC: Compartments (department-based segregation)
-  compartments String[] // Array of compartment names (e.g., ["FINANCIAL", "HR"])
+  
+  compartments String[] 
 
-  // Label hierarchy
+  
   parentId String?
   parent   SecurityLabel?  @relation("LabelHierarchy", fields: [parentId], references: [id])
   children SecurityLabel[] @relation("LabelHierarchy")
 
-  // Resources with this label
+  
   resources Resource[]
 
-  // System flags
+  
   isSystem Boolean @default(false)
   enabled  Boolean @default(true)
 
@@ -386,41 +386,41 @@ model SecurityLabel {
   @@map("security_labels")
 }
 
-// ============================================================================
-// RESOURCE MODEL (For DAC and Security Labeling)
-// ============================================================================
+
+
+
 
 model Resource {
   id         String @id @default(uuid())
-  type       String // Resource type (e.g., "visitor", "document", "area")
-  resourceId String // ID of the actual resource (e.g., visitor ID)
+  type       String 
+  resourceId String 
 
-  // DAC: Discretionary Access Control
+  
   ownerId String
   owner   User   @relation("ResourceOwner", fields: [ownerId], references: [id])
 
-  // MAC: Mandatory Access Control - Security labeling
+  
   securityLabelId String
   securityLabel   SecurityLabel @relation(fields: [securityLabelId], references: [id])
 
-  // Folder hierarchy for permission inheritance
-  parentId String? // Parent folder/resource
+  
+  parentId String? 
   parent   Resource?  @relation("ResourceHierarchy", fields: [parentId], references: [id])
   children Resource[] @relation("ResourceHierarchy")
 
-  // Access control metadata
-  permissions Json? // Stored permissions (for quick lookup)
+  
+  permissions Json? 
 
-  // DAC: Shared permissions
+  
   sharedPermissions ResourcePermission[]
 
-  // DAC: Ownership transfer
+  
   ownershipTransfers OwnershipTransfer[]
 
-  // DAC: Sharing links
+  
   sharingLinks SharingLink[]
 
-  // ABAC: Resource attributes
+  
   resourceAttributes ResourceAttribute[]
 
   createdAt DateTime @default(now())
@@ -434,72 +434,72 @@ model Resource {
   @@map("resources")
 }
 
-// ============================================================================
-// AUDIT LOGGING (Encrypted Activity Logging)
-// ============================================================================
+
+
+
 
 model AuditLog {
   id     String  @id @default(uuid())
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  // Log category and type
+  
   category LogCategory @default(USER_ACTIVITY)
-  logType  LogType // Specific log type within category
+  logType  LogType 
 
-  // Action details
+  
   action     String
   resource   String
   resourceId String?
 
-  // Security classification
+  
   securityLabel SecurityLevel @default(INTERNAL)
 
-  // Encrypted sensitive data
-  encryptedDetails String? @db.Text // Encrypted JSON details
-  encryptionKeyId  String? // Reference to encryption key
+  
+  encryptedDetails String? @db.Text 
+  encryptionKeyId  String? 
 
-  // Log integrity
-  hashChain        String? // Hash chain for sequential verification
-  previousHash     String? // Hash of previous log in chain
-  digitalSignature String? // Digital signature for batch verification
-  batchId          String? // Batch ID for grouped logs
-  isTampered       Boolean @default(false) // Tamper detection flag
+  
+  hashChain        String? 
+  previousHash     String? 
+  digitalSignature String? 
+  batchId          String? 
+  isTampered       Boolean @default(false) 
 
-  // Audit metadata
-  details   Json? // Non-sensitive details
+  
+  details   Json? 
   ipAddress String?
   userAgent String?
-  location  String? // Geographic location
+  location  String? 
 
-  // Before/after states for data modifications
-  beforeState Json? // State before modification
-  afterState  Json? // State after modification
+  
+  beforeState Json? 
+  afterState  Json? 
 
-  // Access control decision
-  accessGranted Boolean? // true = granted, false = denied, null = not applicable
-  policyId      String? // Policy that made the decision
-  policyType    PolicyType? // Type of policy (MAC, DAC, RBAC, etc.)
-  denialReason  String?     @db.Text // Reason for denial
+  
+  accessGranted Boolean? 
+  policyId      String? 
+  policyType    PolicyType? 
+  denialReason  String?     @db.Text 
 
-  // Performance metrics (for system logs)
-  duration           Int? // Duration in milliseconds
-  performanceMetrics Json? // Additional performance data
+  
+  duration           Int? 
+  performanceMetrics Json? 
 
-  // Error tracking (for system logs)
+  
   errorCode    String?
   errorMessage String? @db.Text
   stackTrace   String? @db.Text
 
-  // Compliance and retention
-  retentionUntil   DateTime? // When this log can be deleted
-  complianceTags   String[] // Compliance tags (e.g., "GDPR", "HIPAA", "SOX")
-  subjectRequestId String? // For GDPR subject access requests
+  
+  retentionUntil   DateTime? 
+  complianceTags   String[] 
+  subjectRequestId String? 
 
-  // Export tracking
+  
   exportedAt   DateTime?
   exportedBy   String?
-  exportFormat String? // CSV, JSON, PDF, etc.
+  exportFormat String? 
 
   createdAt      DateTime   @default(now())
   hashChainEntry HashChain?
@@ -524,14 +524,14 @@ model AuditLog {
 }
 
 enum LogCategory {
-  SECURITY // Authentication, access control, policy violations, config changes
-  USER_ACTIVITY // Data access, modifications, permission changes, role assignments
-  SYSTEM // Application events, backups, performance, errors
-  COMPLIANCE // Subject requests, retention enforcement, regulatory checks
+  SECURITY 
+  USER_ACTIVITY 
+  SYSTEM 
+  COMPLIANCE 
 }
 
 enum LogType {
-  // Security Logs
+  
   AUTH_SUCCESS
   AUTH_FAILURE
   AUTH_LOCKOUT
@@ -544,7 +544,7 @@ enum LogType {
   CLEARANCE_CHANGE
   PERMISSION_CHANGE
 
-  // User Activity Logs
+  
   DATA_ACCESS
   DATA_CREATE
   DATA_UPDATE
@@ -556,7 +556,7 @@ enum LogType {
   ROLE_REVOKED
   OWNERSHIP_TRANSFER
 
-  // System Logs
+  
   APP_START
   APP_STOP
   APP_ERROR
@@ -568,7 +568,7 @@ enum LogType {
   EXCEPTION
   CONFIG_CHANGE
 
-  // Compliance Logs
+  
   SUBJECT_ACCESS_REQUEST
   DATA_RETENTION_ENFORCED
   DATA_DELETED_RETENTION
@@ -578,64 +578,64 @@ enum LogType {
   HIPAA_AUDIT
 }
 
-// ============================================================================
-// BACKUP LOGGING (Backup Tracking and Verification)
-// ============================================================================
+
+
+
 
 model BackupLog {
   id String @id @default(uuid())
 
-  // Backup identification
+  
   backupType BackupType
   backupName String
-  backupPath String? // Storage path/location
+  backupPath String? 
 
-  // Storage locations
+  
   storageLocation StorageLocation @default(PRIMARY)
-  primaryPath     String? // Primary storage path
-  secondaryPath   String? // Secondary (cloud) storage path
-  tertiaryPath    String? // Tertiary (off-site) storage path
-  airGappedPath   String? // Air-gapped storage path
+  primaryPath     String? 
+  secondaryPath   String? 
+  tertiaryPath    String? 
+  airGappedPath   String? 
 
-  // Backup metadata
-  size        BigInt? // Size in bytes
-  recordCount Int? // Number of records backed up
+  
+  size        BigInt? 
+  recordCount Int? 
 
-  // Verification
-  checksum           String? // SHA-256 checksum for verification
+  
+  checksum           String? 
   verified           Boolean   @default(false)
   verifiedAt         DateTime?
-  verificationMethod String? // Method used for verification
+  verificationMethod String? 
 
-  // Consistency checks
+  
   preBackupChecksPassed   Boolean @default(false)
   postBackupChecksPassed  Boolean @default(false)
-  consistencyCheckResults Json? // Pre-backup consistency check results
+  consistencyCheckResults Json? 
 
-  // Encryption
+  
   encrypted           Boolean @default(true)
-  encryptionKeyId     String? // Reference to encryption key
+  encryptionKeyId     String? 
   encryptionAlgorithm String? @default("AES-256-GCM")
 
-  // Status
+  
   status       BackupStatus @default(IN_PROGRESS)
   errorMessage String?      @db.Text
 
-  // Restoration testing
+  
   restorationTested     Boolean   @default(false)
   restorationTestDate   DateTime?
-  restorationTestResult String? // PASSED, FAILED
+  restorationTestResult String? 
   restorationTestNotes  String?   @db.Text
 
-  // Retention
-  expiresAt     DateTime? // When backup can be deleted
-  retentionDays Int? // Retention period in days
+  
+  expiresAt     DateTime? 
+  retentionDays Int? 
 
-  // Schedule information
-  scheduledBackupId String? // Reference to scheduled backup
-  scheduleType      String? // WEEKLY, DAILY, HOURLY, REAL_TIME
+  
+  scheduledBackupId String? 
+  scheduleType      String? 
 
-  // Relations
+  
   createdById    String?
   createdBy      User?                 @relation("BackupCreator", fields: [createdById], references: [id])
   recoveryPlanId String?
@@ -656,33 +656,33 @@ model BackupLog {
   @@map("backup_logs")
 }
 
-// ============================================================================
-// SYSTEM CONFIGURATION (Encrypted Configuration Storage)
-// ============================================================================
+
+
+
 
 model SystemConfig {
   id    String @id @default(uuid())
   key   String @unique
-  value String @db.Text // Encrypted value
+  value String @db.Text 
 
-  // Encryption metadata
+  
   encrypted           Boolean @default(true)
-  encryptionKeyId     String? // Reference to encryption key
+  encryptionKeyId     String? 
   encryptionAlgorithm String? @default("AES-256-GCM")
 
-  // Configuration metadata
-  category    String? // Configuration category
+  
+  category    String? 
   description String? @db.Text
-  sensitive   Boolean @default(false) // Whether value contains sensitive data
+  sensitive   Boolean @default(false) 
 
-  // Access control
-  restricted Boolean @default(false) // Requires special permission to read
+  
+  restricted Boolean @default(false) 
 
-  // Versioning
+  
   version       Int     @default(1)
-  previousValue String? @db.Text // Previous encrypted value for rollback
+  previousValue String? @db.Text 
 
-  // Audit
+  
   updatedById String?
   updatedBy   User?   @relation("ConfigUpdater", fields: [updatedById], references: [id])
 
@@ -696,86 +696,86 @@ model SystemConfig {
   @@map("system_configs")
 }
 
-// ============================================================================
-// VISITOR MANAGEMENT MODELS
-// ============================================================================
+
+
+
 
 model Visitor {
   id        String  @id @default(uuid())
-  // Personal info
+  
   firstName String
   lastName  String
   email     String?
   phone     String
   company   String
 
-  // Visit details
+  
   purpose VisitPurpose
   hostId  String
   host    User         @relation(fields: [hostId], references: [id])
 
-  // Security classification
+  
   securityLabel SecurityLevel @default(PUBLIC)
   dataCategory  DataCategory  @default(GENERAL)
 
-  // Visit timing
+  
   scheduledDate  DateTime
   scheduledStart DateTime
   scheduledEnd   DateTime
   actualCheckIn  DateTime?
   actualCheckOut DateTime?
 
-  // Status with state machine
+  
   status       VisitStatus @default(PENDING)
   approvalDate DateTime?
   approvedById String?
   approvedBy   User?       @relation(fields: [approvedById], references: [id], name: "approvedBy")
 
-  // Documents (encrypted storage reference)
-  documentId          String? // Reference to encrypted storage
-  idDocumentEncrypted String? @db.Text // Encrypted ID document data
+  
+  documentId          String? 
+  idDocumentEncrypted String? @db.Text 
 
-  // QR Code and Badge
-  qrCode          String? // QR code hash for check-in (unique after generation)
-  qrCodeExpiresAt DateTime? // QR code expiration
-  badgeNumber     String? // Badge number
-  badgePrintedAt  DateTime? // When badge was printed
-  badgeExpiresAt  DateTime? // Badge expiration time
+  
+  qrCode          String? 
+  qrCodeExpiresAt DateTime? 
+  badgeNumber     String? 
+  badgePrintedAt  DateTime? 
+  badgeExpiresAt  DateTime? 
 
-  // Group visit
+  
   isGroupVisit Boolean @default(false)
-  groupId      String? // Group identifier for bulk operations
-  groupSize    Int? // Number of visitors in group
+  groupId      String? 
+  groupSize    Int? 
 
-  // Approval workflow
-  approvalRequestedAt       DateTime? // When approval was requested
-  approvalEscalatedAt       DateTime? // When escalated to department head
+  
+  approvalRequestedAt       DateTime? 
+  approvalEscalatedAt       DateTime? 
   escalationReason          String?   @db.Text
   requiresSecurityClearance Boolean   @default(false)
   securityClearanceChecked  Boolean   @default(false)
 
-  // Check-in/Check-out
-  checkedInBy    String? // User who checked in visitor
-  checkedOutBy   String? // User who checked out visitor
-  idVerifiedAt   DateTime? // When ID was verified at reception
-  hostNotifiedAt DateTime? // When host was notified of arrival
+  
+  checkedInBy    String? 
+  checkedOutBy   String? 
+  idVerifiedAt   DateTime? 
+  hostNotifiedAt DateTime? 
 
-  // Data retention
-  retentionPeriodStart DateTime? // When retention period starts (after check-out)
-  retentionPeriodDays  Int? // Retention period in days
+  
+  retentionPeriodStart DateTime? 
+  retentionPeriodDays  Int? 
 
-  // Metadata
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
+  
   accessLogs       AccessLog[]
   visitorLogs      VisitorLog[]
   approvalRequests VisitorApprovalRequest[]
   areaAccess       VisitorAreaAccess[]
   digitalAccess    VisitorDigitalAccess?
 
-  // Optimized indexes for common queries
+  
   @@index([hostId, status])
   @@index([scheduledDate])
   @@index([status, scheduledDate])
@@ -787,42 +787,42 @@ model Visitor {
   @@map("visitors")
 }
 
-// ============================================================================
-// VISITOR APPROVAL WORKFLOW
-// ============================================================================
+
+
+
 
 model VisitorApprovalRequest {
   id        String  @id @default(uuid())
   visitorId String
   visitor   Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
 
-  // Request details
+  
   requestedAt DateTime @default(now())
-  requestedBy String? // User who requested (if not visitor)
+  requestedBy String? 
 
-  // Approval workflow
-  hostId String // Host who needs to approve
+  
+  hostId String 
   host   User                  @relation("ApprovalHost", fields: [hostId], references: [id])
   status ApprovalRequestStatus @default(PENDING)
 
-  // Escalation
-  escalatedTo      String? // Department head if escalated
+  
+  escalatedTo      String? 
   escalatedAt      DateTime?
   escalationReason String?   @db.Text
 
-  // Approval/Rejection
+  
   approvedAt      DateTime?
   approvedBy      String?
   rejectedAt      DateTime?
   rejectedBy      String?
   rejectionReason String?   @db.Text
 
-  // Security clearance
+  
   requiresSecurityClearance Boolean @default(false)
   securityClearanceChecked  Boolean @default(false)
-  securityClearanceResult   String? // APPROVED, DENIED, PENDING
+  securityClearanceResult   String? 
 
-  // Notifications
+  
   hostNotifiedAt       DateTime?
   escalationNotifiedAt DateTime?
 
@@ -848,13 +848,13 @@ enum ApprovalRequestStatus {
 model VisitorLog {
   id          String        @id @default(uuid())
   visitorId   String
-  userId      String? // User who performed the action
+  userId      String? 
   action      VisitorAction
   description String?       @db.Text
-  metadata    Json? // Additional data about the action
+  metadata    Json? 
   createdAt   DateTime      @default(now())
 
-  // Relations
+  
   visitor Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
   user    User?   @relation(fields: [userId], references: [id])
 
@@ -870,13 +870,13 @@ model AccessLog {
   visitorId String?
   userId    String?
   action    AccessAction
-  location  String? // Which area/room was accessed
+  location  String? 
   ipAddress String?
   userAgent String?
   metadata  Json?
   createdAt DateTime     @default(now())
 
-  // Relations
+  
   visitor Visitor? @relation(fields: [visitorId], references: [id])
   user    User?    @relation(fields: [userId], references: [id])
 
@@ -917,12 +917,12 @@ enum AuthMethod {
 }
 
 enum PolicyType {
-  MAC // Mandatory Access Control
-  DAC // Discretionary Access Control
-  RBAC // Role-Based Access Control
-  RuBAC // Rule-Based Access Control
-  ABAC // Attribute-Based Access Control
-  HYBRID // Combination of multiple types
+  MAC 
+  DAC 
+  RBAC 
+  RuBAC 
+  ABAC 
+  HYBRID 
 }
 
 enum VisitStatus {
@@ -984,10 +984,10 @@ enum BackupType {
 }
 
 enum StorageLocation {
-  PRIMARY // On-premise encrypted storage
-  SECONDARY // Cloud storage (encrypted)
-  TERTIARY // Off-site physical media
-  AIR_GAPPED // Air-gapped backup
+  PRIMARY 
+  SECONDARY 
+  TERTIARY 
+  AIR_GAPPED 
 }
 
 enum BackupStatus {
@@ -998,15 +998,15 @@ enum BackupStatus {
   EXPIRED
 }
 
-// ============================================================================
-// PASSWORD SECURITY MODELS
-// ============================================================================
+
+
+
 
 model PasswordHistory {
   id           String   @id @default(uuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  passwordHash String // Hashed password
+  passwordHash String 
   createdAt    DateTime @default(now())
 
   @@index([userId])
@@ -1016,7 +1016,7 @@ model PasswordHistory {
 
 model AccountLockout {
   id          String      @id @default(uuid())
-  identifier  String // Email or IP address
+  identifier  String 
   type        LockoutType
   attempts    Int         @default(1)
   lockedUntil DateTime
@@ -1034,29 +1034,29 @@ enum LockoutType {
   IP_ADDRESS
 }
 
-// ============================================================================
-// MANDATORY ACCESS CONTROL (MAC) - BELL-LAPADULA MODEL
-// ============================================================================
+
+
+
 
 model UserClearance {
   id     String @id @default(uuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Clearance level
+  
   level SecurityLevel
 
-  // Need-to-know compartments
-  compartments String[] // Departments/categories user has access to
+  
+  compartments String[] 
 
-  // Clearance metadata
+  
   assignedAt   DateTime        @default(now())
-  assignedBy   String? // User ID who assigned clearance
-  expiresAt    DateTime? // Annual review date
-  nextReviewAt DateTime // Next annual review date
+  assignedBy   String? 
+  expiresAt    DateTime? 
+  nextReviewAt DateTime 
   status       ClearanceStatus @default(ACTIVE)
 
-  // Escalation
+  
   escalationRequested   Boolean   @default(false)
   escalationReason      String?   @db.Text
   escalationRequestedAt DateTime?
@@ -1076,14 +1076,14 @@ model ClearanceHistory {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Clearance change details
+  
   previousLevel        SecurityLevel?
   newLevel             SecurityLevel
   previousCompartments String[]
   newCompartments      String[]
 
-  // Change metadata
-  changedBy  String? // User ID who made the change
+  
+  changedBy  String? 
   reason     String?             @db.Text
   changeType ClearanceChangeType
 
@@ -1099,13 +1099,13 @@ model ClearanceCompartment {
   name        String  @unique
   description String? @db.Text
 
-  // Compartment type
+  
   type CompartmentType
 
-  // Users with access to this compartment
+  
   users User[] @relation("ClearanceUser")
 
-  // System flags
+  
   isSystem Boolean @default(false)
   enabled  Boolean @default(true)
 
@@ -1147,38 +1147,38 @@ enum CompartmentType {
   CUSTOM
 }
 
-// ============================================================================
-// DISCRETIONARY ACCESS CONTROL (DAC) - PERMISSION SHARING
-// ============================================================================
+
+
+
 
 model ResourcePermission {
   id         String   @id @default(uuid())
   resourceId String
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
-  // Permission recipient
-  userId  String? // User who has permission
+  
+  userId  String? 
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  groupId String? // Group that has permission (future: Role/Group model)
+  groupId String? 
 
-  // Permission types
+  
   canRead    Boolean @default(false)
   canWrite   Boolean @default(false)
   canExecute Boolean @default(false)
   canDelete  Boolean @default(false)
-  canShare   Boolean @default(false) // Can share with others
+  canShare   Boolean @default(false) 
 
-  // Time-bound permissions
+  
   expiresAt DateTime?
 
-  // Permission metadata
-  grantedBy String // User ID who granted permission
+  
+  grantedBy String 
   grantedAt DateTime @default(now())
   reason    String?  @db.Text
 
-  // Inherited from parent
+  
   inherited     Boolean @default(false)
-  inheritedFrom String? // Resource ID this was inherited from
+  inheritedFrom String? 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1195,18 +1195,18 @@ model OwnershipTransfer {
   resourceId String
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
-  // Transfer details
-  fromUserId  String // Current owner
-  toUserId    String // New owner
-  requestedBy String // User who requested transfer
-  approvedBy  String? // User who approved transfer
+  
+  fromUserId  String 
+  toUserId    String 
+  requestedBy String 
+  approvedBy  String? 
 
-  // Transfer status
+  
   status          TransferStatus @default(PENDING)
   reason          String?        @db.Text
   rejectionReason String?        @db.Text
 
-  // Timestamps
+  
   requestedAt DateTime  @default(now())
   approvedAt  DateTime?
   completedAt DateTime?
@@ -1226,33 +1226,33 @@ model SharingLink {
   resourceId String
   resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
-  // Link details
-  token     String @unique // Unique token for the sharing link
-  createdBy String // User who created the link
+  
+  token     String @unique 
+  createdBy String 
   creator   User   @relation(fields: [createdBy], references: [id])
 
-  // Permission controls
+  
   canRead    Boolean @default(true)
   canWrite   Boolean @default(false)
   canExecute Boolean @default(false)
   canDelete  Boolean @default(false)
   canShare   Boolean @default(false)
 
-  // Access controls
+  
   expiresAt DateTime?
-  maxUses   Int? // Maximum number of uses (null = unlimited)
+  maxUses   Int? 
   useCount  Int       @default(0)
 
-  // Security
-  password    String? // Optional password protection (hashed)
-  requireAuth Boolean @default(false) // Require user authentication
+  
+  password    String? 
+  requireAuth Boolean @default(false) 
 
-  // Restrictions
-  allowedEmails  String[] // Restrict to specific emails (empty = anyone)
-  allowedDomains String[] // Restrict to specific domains (empty = any)
+  
+  allowedEmails  String[] 
+  allowedDomains String[] 
 
-  // Metadata
-  name        String? // Custom name for the link
+  
+  name        String? 
   description String? @db.Text
 
   createdAt  DateTime  @default(now())
@@ -1274,9 +1274,9 @@ enum TransferStatus {
   CANCELLED
 }
 
-// ============================================================================
-// ROLE-BASED ACCESS CONTROL (RBAC) - ROLE LIFECYCLE
-// ============================================================================
+
+
+
 
 model RoleAssignment {
   id     String @id @default(uuid())
@@ -1285,25 +1285,25 @@ model RoleAssignment {
   roleId String
   role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
-  // Role reviews for this assignment
+  
   reviews RoleReview[] @relation("RoleReviewAssignment")
 
-  // Assignment details
-  assignedBy String // User ID who assigned the role
+  
+  assignedBy String 
   assignedAt DateTime @default(now())
 
-  // Temporary assignment
+  
   isTemporary Boolean   @default(false)
   expiresAt   DateTime?
 
-  // Assignment status
+  
   status AssignmentStatus @default(ACTIVE)
 
-  // Review tracking
+  
   lastReviewedAt DateTime?
-  nextReviewAt   DateTime? // 6 months from assignment
+  nextReviewAt   DateTime? 
 
-  // Deprovisioning
+  
   deprovisionedAt   DateTime?
   deprovisionReason String?   @db.Text
 
@@ -1326,20 +1326,20 @@ model RoleRequest {
   roleId String
   role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
-  // Request details
-  requestedBy   String // User ID who requested (usually same as userId)
+  
+  requestedBy   String 
   requestedAt   DateTime @default(now())
   reason        String?  @db.Text
   justification String?  @db.Text
 
-  // Approval workflow
+  
   status          RequestStatus @default(PENDING)
   approvedBy      String?
   approver        User?         @relation("RoleRequestApprover", fields: [approvedBy], references: [id])
   approvedAt      DateTime?
   rejectionReason String?       @db.Text
 
-  // Temporary request
+  
   isTemporary        Boolean   @default(false)
   requestedExpiresAt DateTime?
 
@@ -1357,22 +1357,22 @@ model RoleReview {
   id           String          @id @default(uuid())
   roleId       String
   role         Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  assignmentId String? // Optional: specific assignment being reviewed
+  assignmentId String? 
   assignment   RoleAssignment? @relation("RoleReviewAssignment", fields: [assignmentId], references: [id], onDelete: Cascade)
 
-  // Review details
-  reviewedBy String // User ID who conducted review
+  
+  reviewedBy String 
   reviewer   User       @relation(fields: [reviewedBy], references: [id])
   reviewedAt DateTime   @default(now())
   reviewType ReviewType
 
-  // Review results
+  
   approved        Boolean
   notes           String? @db.Text
   recommendations String? @db.Text
 
-  // Next review
-  nextReviewAt DateTime // 6 months from review
+  
+  nextReviewAt DateTime 
 
   createdAt DateTime @default(now())
 
@@ -1406,40 +1406,40 @@ enum ReviewType {
   ESCALATION
 }
 
-// ============================================================================
-// RULE-BASED ACCESS CONTROL (RuBAC) - RULE DEFINITIONS
-// ============================================================================
+
+
+
 
 model AccessRule {
   id          String  @id @default(uuid())
   name        String
   description String? @db.Text
 
-  // Rule type
+  
   ruleType RuleType
 
-  // Rule configuration (JSON)
-  config Json // Rule-specific configuration
+  
+  config Json 
 
-  // Rule status
+  
   enabled  Boolean @default(true)
-  priority Int     @default(0) // Higher priority evaluated first
+  priority Int     @default(0) 
 
-  // Emergency override
-  emergencyOverride Boolean @default(false) // Can override other rules in emergency
+  
+  emergencyOverride Boolean @default(false) 
 
-  // Time-limited rule
+  
   validFrom  DateTime?
   validUntil DateTime?
 
-  // Associated policies
+  
   policies AccessPolicy[]
 
-  // Holiday schedule associations (for time-based rules)
+  
   holidayScheduleId String?
   holidaySchedule   HolidaySchedule? @relation(fields: [holidayScheduleId], references: [id])
 
-  // IP whitelist associations (for location-based rules)
+  
   ipWhitelistId String?
   ipWhitelist   IPWhitelist? @relation(fields: [ipWhitelistId], references: [id])
 
@@ -1460,18 +1460,18 @@ model HolidaySchedule {
   name        String
   description String? @db.Text
 
-  // Holiday dates
+  
   startDate DateTime
   endDate   DateTime
 
-  // Holiday type
+  
   type HolidayType
 
-  // Recurring holidays
+  
   isRecurring       Boolean @default(false)
-  recurrencePattern Json? // For recurring holidays (e.g., every year)
+  recurrencePattern Json? 
 
-  // Rule associations
+  
   rules AccessRule[] @relation
 
   createdAt DateTime @default(now())
@@ -1487,13 +1487,13 @@ model IPWhitelist {
   name        String
   description String? @db.Text
 
-  // IP ranges (CIDR notation)
-  ipRanges String[] // e.g., ["192.168.1.0/24", "10.0.0.0/8"]
+  
+  ipRanges String[] 
 
-  // Location metadata
-  location String? // e.g., "Office Building A", "VPN Network"
+  
+  location String? 
 
-  // Rule associations
+  
   rules AccessRule[] @relation
 
   enabled Boolean @default(true)
@@ -1510,28 +1510,28 @@ model DeviceProfile {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Device identification
-  deviceId   String     @unique // Unique device identifier
+  
+  deviceId   String     @unique 
   deviceName String?
   deviceType DeviceType
 
-  // Device attributes
-  os             String? // Operating system
+  
+  os             String? 
   osVersion      String?
   browser        String?
   browserVersion String?
 
-  // Security attributes
+  
   isCompanyManaged    Boolean @default(false)
   hasAntiMalware      Boolean @default(false)
   hasEncryptedStorage Boolean @default(false)
 
-  // Device metadata
+  
   lastSeen  DateTime @default(now())
   ipAddress String?
   userAgent String?
 
-  // Trust level
+  
   trustLevel TrustLevel @default(UNKNOWN)
 
   createdAt DateTime @default(now())
@@ -1548,7 +1548,7 @@ enum RuleType {
   TIME_BASED
   LOCATION_BASED
   DEVICE_BASED
-  COMPOSITE // Multiple rule types combined
+  COMPOSITE 
 }
 
 enum HolidayType {
@@ -1576,34 +1576,34 @@ enum TrustLevel {
   BLOCKED
 }
 
-// ============================================================================
-// ATTRIBUTE-BASED ACCESS CONTROL (ABAC)
-// ============================================================================
+
+
+
 
 model AttributeDefinition {
   id          String  @id @default(uuid())
   name        String  @unique
   description String? @db.Text
 
-  // Attribute type
+  
   attributeType AttributeType
   category      AttributeCategory
 
-  // Value constraints
+  
   valueType     ValueType
-  allowedValues String[] // For ENUM type
-  defaultValue  String? // Default value if not set
+  allowedValues String[] 
+  defaultValue  String? 
 
-  // Validation
-  minValue String? // For numeric/date types
-  maxValue String? // For numeric/date types
-  pattern  String? // Regex pattern for validation
+  
+  minValue String? 
+  maxValue String? 
+  pattern  String? 
 
-  // Metadata
+  
   isSystem Boolean @default(false)
   enabled  Boolean @default(true)
 
-  // Attribute values
+  
   userAttributes     UserAttribute[]
   resourceAttributes ResourceAttribute[]
 
@@ -1623,16 +1623,16 @@ model UserAttribute {
   attributeId String
   attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
-  // Attribute value
+  
   value String @db.Text
 
-  // Value metadata
-  source     String? // Source of the attribute (e.g., "HR_SYSTEM", "MANUAL")
+  
+  source     String? 
   verified   Boolean   @default(false)
-  verifiedBy String? // User who verified
+  verifiedBy String? 
   verifiedAt DateTime?
 
-  // Expiration
+  
   expiresAt DateTime?
 
   createdAt DateTime @default(now())
@@ -1652,12 +1652,12 @@ model ResourceAttribute {
   attributeId String
   attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
-  // Attribute value
+  
   value String @db.Text
 
-  // Value metadata
-  source     String? // Source of the attribute
-  calculated Boolean @default(false) // Auto-calculated vs manual
+  
+  source     String? 
+  calculated Boolean @default(false) 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1676,13 +1676,13 @@ enum AttributeType {
 }
 
 enum AttributeCategory {
-  IDENTITY // Role, department, clearance
-  EMPLOYMENT // Status, contract type, training
-  SECURITY // Certification, clearance level
-  CLASSIFICATION // Resource classification
-  METADATA // Creation date, sensitivity
-  ENVIRONMENT // Time, network, threat level
-  SYSTEM // Maintenance status, system state
+  IDENTITY 
+  EMPLOYMENT 
+  SECURITY 
+  CLASSIFICATION 
+  METADATA 
+  ENVIRONMENT 
+  SYSTEM 
 }
 
 enum ValueType {
@@ -1695,15 +1695,15 @@ enum ValueType {
   JSON
 }
 
-// ============================================================================
-// MULTI-FACTOR AUTHENTICATION (MFA) MODELS
-// ============================================================================
+
+
+
 
 model MFABackupCode {
   id        String    @id @default(uuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code      String // Hashed backup code
+  code      String 
   used      Boolean   @default(false)
   usedAt    DateTime?
   createdAt DateTime  @default(now())
@@ -1717,7 +1717,7 @@ model MFAEmergencyToken {
   id        String    @id @default(uuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String    @unique // Hashed emergency token
+  token     String    @unique 
   used      Boolean   @default(false)
   usedAt    DateTime?
   expiresAt DateTime
@@ -1733,12 +1733,12 @@ model MFAEmailOTP {
   id        String    @id @default(uuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code      String // Hashed OTP code
+  code      String 
   used      Boolean   @default(false)
   usedAt    DateTime?
   expiresAt DateTime
   sentAt    DateTime  @default(now())
-  ipAddress String? // IP address that requested the OTP
+  ipAddress String? 
   createdAt DateTime  @default(now())
 
   @@index([userId])
@@ -1747,24 +1747,24 @@ model MFAEmailOTP {
   @@map("mfa_email_otps")
 }
 
-// ============================================================================
-// LOG SECURITY & MANAGEMENT
-// ============================================================================
+
+
+
 
 model EncryptionKey {
   id          String      @id @default(uuid())
-  keyId       String      @unique // Unique key identifier
-  category    LogCategory // Key per log category
-  keyMaterial String      @db.Text // Encrypted key material (encrypted with master key)
+  keyId       String      @unique 
+  category    LogCategory 
+  keyMaterial String      @db.Text 
   algorithm   String      @default("AES-256-GCM")
-  keySize     Int         @default(256) // Key size in bits
+  keySize     Int         @default(256) 
   createdAt   DateTime    @default(now())
-  expiresAt   DateTime // Key expiration (90 days from creation)
-  rotatedAt   DateTime? // When key was rotated
+  expiresAt   DateTime 
+  rotatedAt   DateTime? 
   isActive    Boolean     @default(true)
-  hsmKeyId    String? // HSM key identifier (if using HSM)
+  hsmKeyId    String? 
 
-  // Key usage tracking
+  
   usageCount Int       @default(0)
   lastUsedAt DateTime?
 
@@ -1779,13 +1779,13 @@ model EncryptionKey {
 
 model HashChain {
   id             String      @id @default(uuid())
-  chainId        String      @unique // Unique chain identifier
-  category       LogCategory // Chain per category
-  previousHash   String? // Hash of previous entry in chain
-  currentHash    String // Current hash
-  logId          String      @unique // Reference to audit log
+  chainId        String      @unique 
+  category       LogCategory 
+  previousHash   String? 
+  currentHash    String 
+  logId          String      @unique 
   log            AuditLog    @relation(fields: [logId], references: [id], onDelete: Cascade)
-  sequenceNumber Int // Sequential number in chain
+  sequenceNumber Int 
   createdAt      DateTime    @default(now())
 
   @@index([chainId])
@@ -1799,10 +1799,10 @@ model LogBatch {
   id                 String      @id @default(uuid())
   batchId            String      @unique
   category           LogCategory
-  logIds             String[] // Array of log IDs in batch
-  signature          String      @db.Text // Digital signature of batch
+  logIds             String[] 
+  signature          String      @db.Text 
   signatureAlgorithm String      @default("RSA-SHA256")
-  signedBy           String? // User who signed
+  signedBy           String? 
   signedAt           DateTime    @default(now())
   verified           Boolean     @default(false)
   verifiedAt         DateTime?
@@ -1816,15 +1816,15 @@ model LogBatch {
 
 model LogAnomaly {
   id          String    @id @default(uuid())
-  anomalyType String // Type of anomaly detected
-  severity    String // LOW, MEDIUM, HIGH, CRITICAL
-  logId       String? // Related log ID
+  anomalyType String 
+  severity    String 
+  logId       String? 
   description String    @db.Text
   detectedAt  DateTime  @default(now())
   resolved    Boolean   @default(false)
   resolvedAt  DateTime?
   resolvedBy  String?
-  metadata    Json? // Additional anomaly data
+  metadata    Json? 
 
   @@index([anomalyType])
   @@index([severity])
@@ -1836,13 +1836,13 @@ model LogAnomaly {
 model SIEMIntegration {
   id           String    @id @default(uuid())
   name         String    @unique
-  type         String // SPLUNK, ELK, QRADAR, CUSTOM
-  endpoint     String // SIEM endpoint URL
-  apiKey       String?   @db.Text // Encrypted API key
+  type         String 
+  endpoint     String 
+  apiKey       String?   @db.Text 
   enabled      Boolean   @default(true)
   lastSyncAt   DateTime?
-  syncInterval Int       @default(3600) // Sync interval in seconds
-  filters      Json? // Log filters for this SIEM
+  syncInterval Int       @default(3600) 
+  filters      Json? 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -1855,19 +1855,19 @@ model ScheduledReport {
   id         String          @id @default(uuid())
   reportType ReportType
   frequency  ReportFrequency
-  recipients String[] // Email addresses
+  recipients String[] 
 
-  // Report configuration
-  filters Json? // Report filters
-  format  String @default("PDF") // PDF, CSV, JSON
+  
+  filters Json? 
+  format  String @default("PDF") 
 
-  // Schedule
+  
   nextRunAt DateTime
   lastRunAt DateTime?
   enabled   Boolean   @default(true)
 
-  // Report data
-  lastReportData Json? // Last generated report data
+  
+  lastReportData Json? 
 
   executions ReportExecution[]
 
@@ -1881,9 +1881,9 @@ model ScheduledReport {
   @@map("scheduled_reports")
 }
 
-// ============================================================================
-// ALERTING & MONITORING
-// ============================================================================
+
+
+
 
 model Alert {
   id        String        @id @default(uuid())
@@ -1893,29 +1893,29 @@ model Alert {
   message   String        @db.Text
   category  AlertCategory
 
-  // Alert source
-  sourceType String? // LOG, ANOMALY, SYSTEM, MANUAL
-  sourceId   String? // ID of source (log ID, anomaly ID, etc.)
+  
+  sourceType String? 
+  sourceId   String? 
 
-  // Recipients
-  recipients String[] // Email addresses or phone numbers
-  channels   AlertChannel[] // EMAIL, SMS, DASHBOARD
+  
+  recipients String[] 
+  channels   AlertChannel[] 
 
-  // Status
+  
   status         AlertStatus @default(PENDING)
   acknowledged   Boolean     @default(false)
   acknowledgedBy String?
   acknowledgedAt DateTime?
 
-  // Resolution
+  
   resolved        Boolean   @default(false)
   resolvedBy      String?
   resolvedAt      DateTime?
   resolutionNotes String?   @db.Text
 
-  // Metadata
-  metadata    Json? // Additional alert data
-  sourceLogId String? // Reference to audit log
+  
+  metadata    Json? 
+  sourceLogId String? 
   sourceLog   AuditLog? @relation(fields: [sourceLogId], references: [id])
   createdAt   DateTime  @default(now())
   sentAt      DateTime?
@@ -1932,22 +1932,22 @@ model Alert {
 
 model DashboardAlert {
   id        String        @id @default(uuid())
-  alertType String // UNUSUAL_ACCESS, POLICY_VIOLATION, PERFORMANCE, COMPLIANCE
+  alertType String 
   severity  AlertSeverity
   title     String
   message   String        @db.Text
   category  AlertCategory
 
-  // Alert data
-  data Json? // Chart data, metrics, etc.
+  
+  data Json? 
 
-  // Status
+  
   active      Boolean   @default(true)
   dismissed   Boolean   @default(false)
   dismissedBy String?
   dismissedAt DateTime?
 
-  // Time range
+  
   startDate DateTime
   endDate   DateTime
 
@@ -1971,9 +1971,9 @@ model ReportExecution {
   startedAt   DateTime     @default(now())
   completedAt DateTime?
 
-  // Report output
+  
   reportData Json?
-  reportUrl  String? // URL to generated report file
+  reportUrl  String? 
 
   errorMessage String? @db.Text
 
@@ -1986,19 +1986,19 @@ model ReportExecution {
 }
 
 enum AlertType {
-  // Immediate Alerts
+  
   MULTIPLE_FAILED_LOGINS
   UNAUTHORIZED_ACCESS
   CRITICAL_SYSTEM_ERROR
   BACKUP_FAILURE
 
-  // Dashboard Alerts
+  
   UNUSUAL_ACCESS_PATTERN
   POLICY_VIOLATION_TREND
   PERFORMANCE_DEGRADATION
   COMPLIANCE_GAP
 
-  // Custom
+  
   CUSTOM
 }
 
@@ -2032,26 +2032,26 @@ enum AlertStatus {
 }
 
 enum ReportType {
-  // Scheduled Reports
+  
   DAILY_SECURITY_SUMMARY
   WEEKLY_COMPLIANCE
   MONTHLY_AUDIT_REVIEW
   QUARTERLY_RISK_ASSESSMENT
   CUSTOM
 
-  // Compliance Reports
+  
   ACCESS_CONTROL_REVIEW
   USER_PERMISSION
   DATA_ACCESS_AUDIT
   POLICY_COMPLIANCE
 
-  // Security Reports
+  
   THREAT_INTELLIGENCE
   VULNERABILITY_ASSESSMENT
   SECURITY_INCIDENT
   RISK_ASSESSMENT
 
-  // Operational Reports
+  
   VISITOR_STATISTICS
   SYSTEM_PERFORMANCE
   BACKUP_SUCCESS
@@ -2073,44 +2073,44 @@ enum ReportStatus {
   CANCELLED
 }
 
-// ============================================================================
-// DISASTER RECOVERY
-// ============================================================================
+
+
+
 
 model DisasterRecoveryPlan {
   id          String  @id @default(uuid())
   name        String
   description String? @db.Text
 
-  // System classification
+  
   systemType SystemType
-  rto        Int // Recovery Time Objective in hours
-  rpo        Int // Recovery Point Objective in hours
+  rto        Int 
+  rpo        Int 
 
-  // Recovery procedures
-  procedures    Json // Step-by-step recovery procedures
-  prerequisites Json? // Prerequisites for recovery
+  
+  procedures    Json 
+  prerequisites Json? 
 
-  // Backup dependencies
-  backupIds String[] // Required backup IDs
-  backups   BackupLog[] @relation // Relation to backups
+  
+  backupIds String[] 
+  backups   BackupLog[] @relation 
 
-  // Recovery team
-  recoveryTeam Json? // Team members and roles
-  contactList  Json? // Contact information
+  
+  recoveryTeam Json? 
+  contactList  Json? 
 
-  // Vendor information
-  vendorContacts Json? // Vendor contact information
+  
+  vendorContacts Json? 
 
-  // Regulatory procedures
-  regulatoryProcedures Json? // Regulatory notification procedures
+  
+  regulatoryProcedures Json? 
 
-  // Testing
+  
   lastTested   DateTime?
   nextTestDate DateTime?
-  testResults  Json? // Test results
+  testResults  Json? 
 
-  // Status
+  
   enabled Boolean @default(true)
 
   executions RecoveryExecution[]
@@ -2129,20 +2129,20 @@ model RecoveryExecution {
   planId String
   plan   DisasterRecoveryPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  // Execution details
+  
   initiatedBy String
   startedAt   DateTime  @default(now())
   completedAt DateTime?
 
-  // Status
+  
   status      RecoveryStatus @default(IN_PROGRESS)
   currentStep Int            @default(0)
   totalSteps  Int
 
-  // Results
+  
   success      Boolean?
   errorMessage String?  @db.Text
-  executionLog Json? // Detailed execution log
+  executionLog Json? 
 
   createdAt DateTime @default(now())
 
@@ -2153,9 +2153,9 @@ model RecoveryExecution {
 }
 
 enum SystemType {
-  CRITICAL // RTO: 4 hours
-  IMPORTANT // RTO: 24 hours
-  NON_CRITICAL // RTO: 72 hours
+  CRITICAL 
+  IMPORTANT 
+  NON_CRITICAL 
 }
 
 enum RecoveryStatus {
@@ -2166,44 +2166,44 @@ enum RecoveryStatus {
   PAUSED
 }
 
-// ============================================================================
-// SECURITY DASHBOARD & MANAGEMENT
-// ============================================================================
+
+
+
 
 model SecurityIncident {
   id          String @id @default(uuid())
   title       String
   description String @db.Text
 
-  // Incident classification
+  
   severity IncidentSeverity
   category IncidentCategory
   status   IncidentStatus   @default(OPEN)
 
-  // Incident details
+  
   detectedAt DateTime @default(now())
-  reportedBy String? // User who reported
-  assignedTo String? // User assigned to handle
+  reportedBy String? 
+  assignedTo String? 
 
-  // Response
-  playbookId       String? // Reference to response playbook
-  responseSteps    Json? // Response steps taken
-  communicationLog Json? // Communication log
+  
+  playbookId       String? 
+  responseSteps    Json? 
+  communicationLog Json? 
 
-  // Resolution
+  
   resolvedAt      DateTime?
   resolvedBy      String?
   resolutionNotes String?   @db.Text
 
-  // Post-incident
+  
   reviewedAt     DateTime?
   reviewedBy     String?
   reviewNotes    String?   @db.Text
   lessonsLearned String?   @db.Text
 
-  // Related entities
-  relatedLogIds String[] // Related audit log IDs
-  relatedUserId String? // Related user if applicable
+  
+  relatedLogIds String[] 
+  relatedUserId String? 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2222,13 +2222,13 @@ model IncidentPlaybook {
   description String?          @db.Text
   category    IncidentCategory
 
-  // Playbook steps
-  steps Json // Step-by-step response procedures
+  
+  steps Json 
 
-  // Communication templates
-  templates Json? // Communication templates for this incident type
+  
+  templates Json? 
 
-  // Status
+  
   enabled Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -2242,24 +2242,24 @@ model IncidentPlaybook {
 model SystemHealth {
   id String @id @default(uuid())
 
-  // Health metrics
+  
   status         HealthStatus @default(HEALTHY)
-  cpuUsage       Float? // CPU usage percentage
-  memoryUsage    Float? // Memory usage percentage
-  diskUsage      Float? // Disk usage percentage
-  networkLatency Int? // Network latency in ms
+  cpuUsage       Float? 
+  memoryUsage    Float? 
+  diskUsage      Float? 
+  networkLatency Int? 
 
-  // Application health
-  databaseStatus String? // Database connection status
-  apiStatus      String? // API response status
-  backupStatus   String? // Last backup status
+  
+  databaseStatus String? 
+  apiStatus      String? 
+  backupStatus   String? 
 
-  // Security health
+  
   activeThreats  Int @default(0)
   failedLogins   Int @default(0)
   activeSessions Int @default(0)
 
-  // Timestamp
+  
   recordedAt DateTime @default(now())
 
   @@index([status])
@@ -2270,27 +2270,27 @@ model SystemHealth {
 model ThreatIntelligence {
   id String @id @default(uuid())
 
-  // Threat details
+  
   threatType  ThreatType
   severity    ThreatSeverity
-  source      String? // Threat source (IP, domain, etc.)
+  source      String? 
   description String         @db.Text
 
-  // Location
+  
   ipAddress String?
   country   String?
   region    String?
 
-  // Status
+  
   status    ThreatStatus @default(ACTIVE)
   blocked   Boolean      @default(false)
   blockedAt DateTime?
 
-  // Detection
+  
   detectedAt DateTime @default(now())
-  detectedBy String? // System or user who detected
+  detectedBy String? 
 
-  // Resolution
+  
   resolvedAt DateTime?
   resolvedBy String?
 
@@ -2369,9 +2369,9 @@ enum ThreatStatus {
   FALSE_POSITIVE
 }
 
-// ============================================================================
-// REPORTING SYSTEM
-// ============================================================================
+
+
+
 
 model Report {
   id          String     @id @default(uuid())
@@ -2379,30 +2379,30 @@ model Report {
   reportName  String
   description String?    @db.Text
 
-  // Report data
-  reportData Json // Generated report data
-  filters    Json? // Filters used to generate report
+  
+  reportData Json 
+  filters    Json? 
 
-  // Format and storage
+  
   format   ReportFormat @default(JSON)
-  fileUrl  String? // URL to generated report file
-  fileSize BigInt? // File size in bytes
+  fileUrl  String? 
+  fileSize BigInt? 
 
-  // Generation details
+  
   generatedBy String
   generatedAt DateTime  @default(now())
-  startDate   DateTime? // Report period start
-  endDate     DateTime? // Report period end
+  startDate   DateTime? 
+  endDate     DateTime? 
 
-  // Status
+  
   status       ReportGenerationStatus @default(GENERATING)
   errorMessage String?                @db.Text
 
-  // Schedule (if scheduled)
+  
   scheduleId String?
   schedule   ReportSchedule? @relation(fields: [scheduleId], references: [id])
 
-  // Template (if used)
+  
   templateId String?
   template   ReportTemplate? @relation(fields: [templateId], references: [id])
 
@@ -2423,13 +2423,13 @@ model ReportTemplate {
   description String?    @db.Text
   reportType  ReportType
 
-  // Template configuration
-  templateConfig Json // Template structure, fields, formatting
+  
+  templateConfig Json 
 
-  // Default filters
+  
   defaultFilters Json?
 
-  // Status
+  
   enabled Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -2448,19 +2448,19 @@ model ReportSchedule {
   name        String  @unique
   description String? @db.Text
 
-  // Schedule configuration
+  
   reportType ReportType
   templateId String?
   template   ReportTemplate?   @relation(fields: [templateId], references: [id])
   frequency  ScheduleFrequency
-  dayOfWeek  Int? // 0-6 (Sunday-Saturday) for weekly
-  dayOfMonth Int? // 1-31 for monthly
-  time       String? // HH:MM format
+  dayOfWeek  Int? 
+  dayOfMonth Int? 
+  time       String? 
 
-  // Recipients
-  recipients String[] // Email addresses
+  
+  recipients String[] 
 
-  // Status
+  
   enabled   Boolean   @default(true)
   lastRunAt DateTime?
   nextRunAt DateTime?
@@ -2500,24 +2500,24 @@ enum ScheduleFrequency {
   ON_DEMAND
 }
 
-// ============================================================================
-// VISITOR ACCESS CONTROL
-// ============================================================================
+
+
+
 
 model Area {
   id                String         @id @default(uuid())
   name              String         @unique
   description       String?        @db.Text
-  zone              String // Zone identifier (e.g., "LOBBY", "OFFICE", "LAB", "SERVER_ROOM")
+  zone              String 
   securityLevel     SecurityLevel  @default(INTERNAL)
   requiresEscort    Boolean        @default(false)
   requiresClearance Boolean        @default(false)
-  minClearance      SecurityLevel? // Minimum clearance required
+  minClearance      SecurityLevel? 
 
-  // Access control
+  
   enabled Boolean @default(true)
 
-  // Relations
+  
   visitorAccess VisitorAreaAccess[]
 
   createdAt DateTime @default(now())
@@ -2536,19 +2536,19 @@ model VisitorAreaAccess {
   areaId    String
   area      Area    @relation(fields: [areaId], references: [id], onDelete: Cascade)
 
-  // Access details
+  
   grantedAt     DateTime  @default(now())
-  expiresAt     DateTime // Time-limited access
+  expiresAt     DateTime 
   revokedAt     DateTime?
   revokedBy     String?
   revokedReason String?   @db.Text
 
-  // Escort
+  
   requiresEscort Boolean @default(false)
-  escortId       String? // User who must escort
+  escortId       String? 
   escorted       Boolean @default(false)
 
-  // Status
+  
   active Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -2566,33 +2566,33 @@ model VisitorDigitalAccess {
   visitorId String  @unique
   visitor   Visitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
 
-  // WiFi credentials
+  
   wifiUsername  String?   @unique
-  wifiPassword  String?   @db.Text // Encrypted
-  wifiSSID      String? // Network SSID
+  wifiPassword  String?   @db.Text 
+  wifiSSID      String? 
   wifiExpiresAt DateTime?
 
-  // Network access
+  
   networkAccessEnabled Boolean  @default(true)
-  allowedIPs           String[] // Allowed IP addresses
-  blockedIPs           String[] // Blocked IP addresses
-  allowedPorts         Int[] // Allowed ports
-  blockedPorts         Int[] // Blocked ports
-  bandwidthLimit       Int? // Bandwidth limit in Mbps
+  allowedIPs           String[] 
+  blockedIPs           String[] 
+  allowedPorts         Int[] 
+  blockedPorts         Int[] 
+  bandwidthLimit       Int? 
 
-  // Web portal
+  
   webPortalEnabled Boolean @default(true)
   webPortalUrl     String?
-  webPortalToken   String? @unique // Access token for portal
+  webPortalToken   String? @unique 
 
-  // Printing
+  
   printingEnabled Boolean @default(false)
-  printQuota      Int? // Maximum pages
+  printQuota      Int? 
   printUsed       Int     @default(0)
 
-  // Access control
+  
   active    Boolean  @default(true)
-  expiresAt DateTime // Digital access expiration
+  expiresAt DateTime 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

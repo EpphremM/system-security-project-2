@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PolicyType } from "@/generated/prisma/enums";
 
-/**
- * Get policy management data
- */
+
 export async function getPolicyManagementData(): Promise<{
   total: number;
   byType: Array<{ type: PolicyType; count: number }>;
@@ -54,9 +52,7 @@ export async function getPolicyManagementData(): Promise<{
   };
 }
 
-/**
- * Test policy
- */
+
 export async function testPolicy(
   policyId: string,
   testScenario: {
@@ -81,10 +77,10 @@ export async function testPolicy(
 
   const evaluationSteps: Array<{ step: string; result: boolean; details?: any }> = [];
 
-  // Test based on policy type
+  
   switch (policy.policyType) {
     case "MAC":
-      // Test MAC policy
+      
       const { checkReadAccess } = await import("@/lib/access/mac");
       const macResult = await checkReadAccess(
         testScenario.userId,
@@ -103,7 +99,7 @@ export async function testPolicy(
       };
 
     case "RBAC":
-      // Test RBAC policy
+      
       const { getEffectivePermissions } = await import("@/lib/access/rbac");
       const rbacResult = await getEffectivePermissions(testScenario.userId);
       const hasPermission = rbacResult.some(
@@ -121,7 +117,7 @@ export async function testPolicy(
       };
 
     case "ABAC":
-      // Test ABAC policy
+      
       const { evaluateABACPolicy } = await import("@/lib/access/abac");
       const abacResult = await evaluateABACPolicy(
         policyId,
@@ -150,9 +146,7 @@ export async function testPolicy(
   }
 }
 
-/**
- * Deploy policy
- */
+
 export async function deployPolicy(
   policyId: string,
   deployedBy: string
@@ -168,10 +162,10 @@ export async function deployPolicy(
     throw new Error("Policy not found");
   }
 
-  // Test policy before deployment
-  // In production, run comprehensive tests
+  
+  
 
-  // Enable policy
+  
   await prisma.accessPolicy.update({
     where: { id: policyId },
     data: {
@@ -180,7 +174,7 @@ export async function deployPolicy(
     },
   });
 
-  // Log deployment
+  
   await prisma.auditLog.create({
     data: {
       userId: deployedBy,
@@ -203,9 +197,7 @@ export async function deployPolicy(
   };
 }
 
-/**
- * Get policy audit trail
- */
+
 export async function getPolicyAuditTrail(
   policyId: string
 ): Promise<Array<{

@@ -8,9 +8,7 @@ import {
   AlertStatus,
 } from "@/generated/prisma/enums";
 
-/**
- * Send immediate alert (Email/SMS)
- */
+
 export async function sendImmediateAlert(
   alertType: AlertType,
   severity: AlertSeverity,
@@ -20,7 +18,7 @@ export async function sendImmediateAlert(
   channels: AlertChannel[],
   metadata?: Record<string, any>
 ): Promise<string> {
-  // Create alert record
+  
   const alert = await prisma.alert.create({
     data: {
       alertType,
@@ -35,7 +33,7 @@ export async function sendImmediateAlert(
     },
   });
 
-  // Send via configured channels
+  
   for (const channel of channels) {
     try {
       if (channel === "EMAIL") {

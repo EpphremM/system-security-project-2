@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = parsed.data;
 
-    // Find user by email
+    
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already verified
+    
     if (user.emailVerified) {
       return NextResponse.json(
         { error: "Email is already verified" },
@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new OTP
+    
     const otp = await createVerificationOTP(user.id, user.email);
 
-    // Send verification email with OTP
+    
     await sendVerificationEmail(user.email, otp, user.name || undefined);
 
-    // Log resend (audit)
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,

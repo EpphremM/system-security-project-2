@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { VisitorAction, AccessAction } from "@prisma/client";
 
-/**
- * Log visitor actions
- */
+
 export async function logVisitorAction(
   visitorId: string,
   action: VisitorAction,
@@ -26,9 +24,7 @@ export async function logVisitorAction(
   }
 }
 
-/**
- * Log access events
- */
+
 export async function logAccess(
   action: AccessAction,
   options: {
@@ -56,6 +52,7 @@ export async function logAccess(
     console.error("Failed to log access:", error);
   }
 }
+
 
 
 

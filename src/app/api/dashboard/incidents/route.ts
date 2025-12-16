@@ -189,13 +189,13 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.json(data);
     } else {
-      // Get all incidents
+      
       const { prisma } = await import("@/lib/prisma");
       const incidents = await prisma.securityIncident.findMany({
         orderBy: { detectedAt: "desc" },
         take: 100,
         include: {
-          // Include related user if exists
+          
         },
       });
 

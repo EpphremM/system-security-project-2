@@ -2,9 +2,7 @@ import { createHash, createSign, createVerify } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { LogCategory } from "@/generated/prisma/enums";
 
-/**
- * Generate hash for log entry
- */
+
 export function hashLogEntry(logData: {
   id: string;
   category: string;
@@ -29,20 +27,18 @@ export function hashLogEntry(logData: {
   return createHash("sha256").update(dataString).digest("hex");
 }
 
-/**
- * Add log to hash chain
- */
+
 export async function addToHashChain(
   logId: string,
   category: LogCategory
 ): Promise<string> {
-  // Get last entry in chain for this category
+  
   const lastEntry = await prisma.hashChain.findFirst({
     where: { category },
     orderBy: { sequenceNumber: "desc" },
   });
 
-  // Get log data
+  
   const log = await prisma.auditLog.findUnique({
     where: { id: logId },
   });

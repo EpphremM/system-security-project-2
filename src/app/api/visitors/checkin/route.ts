@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get("action");
 
     if (action === "auto-checkout") {
-      // Automatic check-out job
+      
       const result = await automaticCheckOut();
       return NextResponse.json({
         success: true,

@@ -8,7 +8,7 @@ const createSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   ruleType: z.nativeEnum(RuleType),
-  config: z.any(), // Rule-specific configuration
+  config: z.any(), 
   enabled: z.boolean().optional(),
   priority: z.number().int().optional(),
   emergencyOverride: z.boolean().optional(),
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

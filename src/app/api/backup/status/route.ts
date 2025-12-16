@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get recent backups
+    
     const backups = await prisma.backupLog.findMany({
       orderBy: {
         startedAt: "desc",
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Get last backup
+    
     const lastBackup = await prisma.backupLog.findFirst({
       where: {
         status: "COMPLETED",
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Calculate next backup (assuming daily at 2 AM)
+    
     const now = new Date();
     const nextBackup = new Date(now);
     nextBackup.setHours(2, 0, 0, 0);

@@ -18,12 +18,12 @@ export async function GET(request: NextRequest) {
     const reportId = searchParams.get("reportId");
 
     if (reportId) {
-      // Get single report
+      
       const report = await getReport(reportId);
       return NextResponse.json(report);
     }
 
-    // List reports
+    
     const reportType = searchParams.get("reportType") as ReportType | null;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");

@@ -20,7 +20,7 @@ export type {
   AuthMethod
 };
 
-// Legacy export for backward compatibility
+
 export type VisitorStatus = VisitStatus;
 
 export interface User {
@@ -58,37 +58,37 @@ export interface WebAuthnDevice {
 
 export interface Visitor {
   id: string;
-  // Personal info
+  
   firstName: string;
   lastName: string;
   email: string | null;
   phone: string;
   company: string;
   
-  // Visit details
+  
   purpose: VisitPurpose;
   hostId: string;
   
-  // Security classification
+  
   securityLabel: SecurityLevel;
   dataCategory: DataCategory;
   
-  // Visit timing
+  
   scheduledDate: Date;
   scheduledStart: Date;
   scheduledEnd: Date;
   actualCheckIn: Date | null;
   actualCheckOut: Date | null;
   
-  // Status with state machine
+  
   status: VisitStatus;
   approvalDate: Date | null;
   approvedById: string | null;
   
-  // Documents (encrypted storage reference)
+  
   documentId: string | null;
   
-  // Metadata
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -140,7 +140,7 @@ export interface AuditLog {
   createdAt: Date;
 }
 
-// NextAuth types
+
 declare module "next-auth" {
   interface Session {
     user: {

@@ -3,10 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logDataDeletedRetention, calculateRetentionDate } from "@/lib/logging/compliance";
 
-/**
- * Enforce log retention policies
- * This should be run as a scheduled job (cron)
- */
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -18,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find logs that have passed their retention date
+    
     const expiredLogs = await prisma.auditLog.findMany({
       where: {
         retentionUntil: {
@@ -41,7 +38,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Group by resource type for logging
+    
     const resourceGroups: Record<string, string[]> = {};
     for (const log of expiredLogs) {
       if (!resourceGroups[log.resource]) {
@@ -50,7 +47,7 @@ export async function POST(request: NextRequest) {
       resourceGroups[log.resource].push(log.id);
     }
 
-    // Delete expired logs
+    
     const deleteResult = await prisma.auditLog.deleteMany({
       where: {
         id: {
@@ -59,7 +56,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log the deletion
+    
     for (const [resource, resourceIds] of Object.entries(resourceGroups)) {
       await logDataDeletedRetention(
         resource,

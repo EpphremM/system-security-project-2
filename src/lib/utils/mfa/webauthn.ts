@@ -15,9 +15,7 @@ const rpName = process.env.WEBAUTHN_RP_NAME || "Visitor Management System";
 const rpID = process.env.WEBAUTHN_RP_ID || "localhost";
 const origin = process.env.WEBAUTHN_ORIGIN || "http://localhost:3000";
 
-/**
- * Generate WebAuthn registration options for a user
- */
+
 export async function generateWebAuthnRegistrationOptions(
   userId: string,
   userName: string,
@@ -52,15 +50,13 @@ export async function generateWebAuthnRegistrationOptions(
       userVerification: "preferred",
       requireResidentKey: false,
     },
-    supportedAlgorithmIDs: [-7, -257], // ES256 and RS256
+    supportedAlgorithmIDs: [-7, -257], 
   });
 
   return options;
 }
 
-/**
- * Verify WebAuthn registration response and store device
- */
+
 export async function verifyWebAuthnRegistration(
   userId: string,
   response: RegistrationResponseJSON,

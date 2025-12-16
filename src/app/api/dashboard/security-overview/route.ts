@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
       } catch (err) {
         console.error("Get security overview error:", err);
-        // Return empty/default data instead of error
+        
         return NextResponse.json({
           threats: {
             active: 0,
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("Get security overview error:", error);
-    // Return default data instead of error
+    
     return NextResponse.json({
       threats: {
         active: 0,

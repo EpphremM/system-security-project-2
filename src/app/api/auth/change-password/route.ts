@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     const { currentPassword, newPassword } = parsed.data;
 
-    // Get user
+    
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify current password
+    
     const currentPasswordValid = await verifyPassword(
       currentPassword,
       user.passwordHash
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate new password policy
+    
     const policyResult = validatePasswordPolicy(newPassword);
     if (!policyResult.valid) {
       return NextResponse.json(
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check password history (prevent reuse of last 5)
+    
     const inHistory = await isPasswordInHistory(user.id, newPassword);
     if (inHistory) {
       return NextResponse.json(
@@ -87,13 +87,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash new password
+    
     const newPasswordHash = await hashPassword(newPassword);
 
-    // Add current password to history before updating
+    
     await addPasswordToHistory(user.id, user.passwordHash);
 
-    // Update password
+    
     const passwordChangedAt = new Date();
     const passwordExpiresAt = calculatePasswordExpiration(passwordChangedAt);
 
@@ -104,12 +104,12 @@ export async function POST(request: NextRequest) {
         passwordChangedAt,
         passwordExpiresAt,
         sessionVersion: {
-          increment: 1, // Invalidate all sessions
+          increment: 1, 
         },
       },
     });
 
-    // Log password change
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
 
 

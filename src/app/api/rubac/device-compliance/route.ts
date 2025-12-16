@@ -12,19 +12,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user agent
+    
     const userAgent = request.headers.get("user-agent") || "";
     const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
     const isSecure = request.headers.get("x-forwarded-proto") === "https" || 
                      request.url.startsWith("https://");
 
-    // Basic device compliance check
+    
     const deviceInfo = {
       userAgent,
       platform: isMobile ? "Mobile" : "Desktop",
       isMobile,
       isSecure,
-      hasRequiredFeatures: true, // Would check for specific features
+      hasRequiredFeatures: true, 
       complianceStatus: isSecure ? "COMPLIANT" : "WARNING" as const,
       issues: isSecure ? [] : ["Connection is not secure (HTTPS required)"],
     };

@@ -66,17 +66,17 @@ export function RegisterForm() {
   const password = watch("password");
   const termsAccepted = watch("termsAccepted");
 
-  // Debug: Log when captchaToken changes
+  
   useEffect(() => {
     console.log("captchaToken state changed:", captchaToken ? "Token set" : "No token");
   }, [captchaToken]);
 
   const onSubmit = async (data: RegisterFormData) => {
-    // CAPTCHA is optional for now
-    // if (!captchaToken) {
-    //   setError("Please complete the CAPTCHA verification");
-    //   return;
-    // }
+    
+    
+    
+    
+    
 
     if (!termsAccepted) {
       setError("You must accept the terms of service");
@@ -110,7 +110,7 @@ export function RegisterForm() {
         return;
       }
 
-      // Registration successful - redirect to verify email with email parameter
+      
       router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       console.error("Registration error:", err);

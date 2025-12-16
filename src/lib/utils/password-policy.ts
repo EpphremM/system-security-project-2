@@ -1,7 +1,7 @@
 import { z } from "zod";
 import zxcvbn from "zxcvbn";
 
-// Common password dictionary for attack prevention
+
 const COMMON_PASSWORDS = [
   "password", "123456", "123456789", "12345678", "12345",
   "1234567", "1234567890", "qwerty", "abc123", "monkey",
@@ -18,34 +18,32 @@ export interface PasswordPolicyResult {
   warnings: string[];
 }
 
-/**
- * Validate password against policy
- */
+
 export function validatePasswordPolicy(password: string): PasswordPolicyResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Minimum 12 characters
+  
   if (password.length < 12) {
     errors.push("Password must be at least 12 characters long");
   }
 
-  // Require uppercase
+  
   if (!/[A-Z]/.test(password)) {
     errors.push("Password must contain at least one uppercase letter");
   }
 
-  // Require lowercase
+  
   if (!/[a-z]/.test(password)) {
     errors.push("Password must contain at least one lowercase letter");
   }
 
-  // Require numbers
+  
   if (!/[0-9]/.test(password)) {
     errors.push("Password must contain at least one number");
   }
 
-  // Require symbols
+  
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
     errors.push("Password must contain at least one special character");
   }
@@ -137,6 +135,7 @@ export function getDaysUntilExpiration(passwordExpiresAt: Date | null): number |
   
   return days > 0 ? days : 0;
 }
+
 
 
 

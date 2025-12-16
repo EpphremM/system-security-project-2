@@ -12,11 +12,11 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract client metadata
+    
     const metadata = extractClientMetadata(request);
     const ipAddress = metadata.ipAddress;
 
-    // Check IP-based lockout
+    
     const ipLockout = await checkIPLockout(ipAddress);
     if (ipLockout.locked) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = parsed.data;
 
-    // Check account lockout
+    
     const accountLockout = await checkAccountLockout(email);
     if (accountLockout.locked) {
       return NextResponse.json(
@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
           retryAfter: accountLockout.retryAfter,
           lockedUntil: accountLockout.lockedUntil,
         },
-        { status: 423 } // 423 Locked
+        { status: 423 } 
       );
     }
 
-    // Attempt sign in (this will use the authorize function in auth config)
-    // The authorize function will check account lockout and verify password
+    
+    
     try {
       const result = await signIn("credentials", {
         email,
@@ -63,11 +63,11 @@ export async function POST(request: NextRequest) {
       });
 
       if (result?.error) {
-        // Record failed attempt (already recorded in authorize, but update with IP)
+        
         const { recordFailedLogin } = await import("@/lib/utils/account-lockout");
         await recordFailedLogin(email, ipAddress);
         
-        // Log failed attempt with IP
+        
         const user = await prisma.user.findUnique({
           where: { email },
           select: { id: true },
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Password verified - now check if MFA is required
+      
       const user = await prisma.user.findUnique({
         where: { email },
         select: { 
@@ -105,9 +105,9 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // If MFA is enabled, require MFA verification before completing login
+      
       if (user?.mfaEnabled) {
-        // Determine available MFA methods
+        
         const hasWebAuthn = user.webauthnDevices.length > 0;
         const availableMethods: string[] = ["totp", "email_otp", "backup_code", "emergency_token"];
         if (hasWebAuthn) {
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     } catch (error: any) {
-      // Handle lockout errors from authorize function
+      
       if (error.message?.includes("locked")) {
         return NextResponse.json(
           { error: error.message },
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Login error:", error);
     
-    // Handle lockout errors
+    
     if (error.message?.includes("locked")) {
       return NextResponse.json(
         { error: error.message },

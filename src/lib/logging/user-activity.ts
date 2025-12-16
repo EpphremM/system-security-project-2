@@ -14,9 +14,7 @@ interface UserActivityLogOptions {
   securityLabel?: SecurityLevel;
 }
 
-/**
- * Log data access
- */
+
 export async function logDataAccess(
   userId: string,
   resource: string,
@@ -43,9 +41,7 @@ export async function logDataAccess(
   });
 }
 
-/**
- * Log data creation
- */
+
 export async function logDataCreate(
   userId: string,
   resource: string,
@@ -75,9 +71,7 @@ export async function logDataCreate(
   });
 }
 
-/**
- * Log data update
- */
+
 export async function logDataUpdate(
   userId: string,
   resource: string,
@@ -108,9 +102,7 @@ export async function logDataUpdate(
   });
 }
 
-/**
- * Log data deletion
- */
+
 export async function logDataDelete(
   userId: string,
   resource: string,
@@ -143,9 +135,7 @@ export async function logDataDelete(
   });
 }
 
-/**
- * Log data export
- */
+
 export async function logDataExport(
   userId: string,
   resource: string,
@@ -177,9 +167,7 @@ export async function logDataExport(
   });
 }
 
-/**
- * Log permission grant
- */
+
 export async function logPermissionGrant(
   userId: string,
   grantedBy: string,
@@ -215,9 +203,7 @@ export async function logPermissionGrant(
   });
 }
 
-/**
- * Log permission revoke
- */
+
 export async function logPermissionRevoke(
   userId: string,
   revokedBy: string,
@@ -251,9 +237,7 @@ export async function logPermissionRevoke(
   });
 }
 
-/**
- * Log role assignment
- */
+
 export async function logRoleAssignment(
   userId: string,
   roleId: string,
@@ -285,9 +269,7 @@ export async function logRoleAssignment(
   });
 }
 
-/**
- * Log role revocation
- */
+
 export async function logRoleRevocation(
   userId: string,
   roleId: string,
@@ -319,9 +301,7 @@ export async function logRoleRevocation(
   });
 }
 
-/**
- * Log ownership transfer
- */
+
 export async function logOwnershipTransfer(
   resource: string,
   resourceId: string,
@@ -356,9 +336,7 @@ export async function logOwnershipTransfer(
   });
 }
 
-/**
- * Generic user activity logger
- */
+
 export async function logUserActivity(options: UserActivityLogOptions) {
   const metadata = options.request ? extractClientMetadata(options.request) : {};
 
@@ -366,7 +344,7 @@ export async function logUserActivity(options: UserActivityLogOptions) {
     data: {
       userId: options.userId,
       category: "USER_ACTIVITY",
-      logType: "DATA_ACCESS", // Default, can be overridden in details
+      logType: "DATA_ACCESS", 
       action: options.action,
       resource: options.resource,
       resourceId: options.resourceId,

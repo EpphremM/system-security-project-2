@@ -4,9 +4,7 @@ import { encryptLogData } from "@/lib/logging/encryption";
 import { randomBytes, createHash } from "crypto";
 import { logAccess } from "@/lib/utils/logger";
 
-/**
- * Grant area access to visitor
- */
+
 export async function grantAreaAccess(
   visitorId: string,
   areaId: string,
@@ -36,7 +34,7 @@ export async function grantAreaAccess(
     throw new Error("Area not found");
   }
 
-  // Check security clearance
+  
   if (area.requiresClearance && area.minClearance) {
     const clearanceLevel = getSecurityLevelValue(visitor.securityLabel);
     const requiredLevel = getSecurityLevelValue(area.minClearance);
@@ -45,7 +43,7 @@ export async function grantAreaAccess(
     }
   }
 
-  // Calculate expiration (default: end of visit or 8 hours, whichever is earlier)
+  
   const expiresAt = options?.expiresAt || (() => {
     const end = new Date(visitor.scheduledEnd);
     const maxExpiry = new Date();
@@ -64,7 +62,7 @@ export async function grantAreaAccess(
     },
   });
 
-  // Log access grant
+  
   await logAccess("ENTRY", {
     visitorId,
     location: area.name,
@@ -78,9 +76,7 @@ export async function grantAreaAccess(
   return access.id;
 }
 
-/**
- * Revoke area access
- */
+
 export async function revokeAreaAccess(
   accessId: string,
   revokedBy: string,
@@ -105,7 +101,7 @@ export async function revokeAreaAccess(
     },
   });
 
-  // Log access revocation
+  
   await logAccess("EXIT", {
     visitorId: access.visitorId,
     location: access.area.name,
@@ -116,9 +112,7 @@ export async function revokeAreaAccess(
   });
 }
 
-/**
- * Check if visitor has access to area
- */
+
 export async function checkAreaAccess(
   visitorId: string,
   areaId: string
@@ -149,7 +143,7 @@ export async function checkAreaAccess(
     };
   }
 
-  // Check if escort is required
+  
   if (access.requiresEscort && !access.escorted) {
     return {
       allowed: false,
@@ -166,9 +160,7 @@ export async function checkAreaAccess(
   };
 }
 
-/**
- * Automatically revoke access after visit
- */
+
 export async function revokeAccessAfterVisit(visitorId: string): Promise<{
   revoked: number;
 }> {
@@ -180,7 +172,7 @@ export async function revokeAccessAfterVisit(visitorId: string): Promise<{
     return { revoked: 0 };
   }
 
-  // Revoke all active area access
+  
   const result = await prisma.visitorAreaAccess.updateMany({
     where: {
       visitorId,
@@ -194,7 +186,7 @@ export async function revokeAccessAfterVisit(visitorId: string): Promise<{
     },
   });
 
-  // Revoke digital access
+  
   await prisma.visitorDigitalAccess.updateMany({
     where: {
       visitorId,
@@ -208,9 +200,7 @@ export async function revokeAccessAfterVisit(visitorId: string): Promise<{
   return { revoked: result.count };
 }
 
-/**
- * Get security level value for comparison
- */
+
 function getSecurityLevelValue(level: SecurityLevel): number {
   const levels: Record<SecurityLevel, number> = {
     PUBLIC: 0,

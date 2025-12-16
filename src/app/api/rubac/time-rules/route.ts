@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { resourceId, resourceType, rules } = body;
 
-    // Save time rules to database
-    // This would typically be stored in a TimeRule table
-    // For now, we'll return success
+    
+    
+    
 
     return NextResponse.json({
       success: true,

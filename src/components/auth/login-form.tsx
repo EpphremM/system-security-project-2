@@ -47,7 +47,7 @@ export function LoginForm({ onMFARequired }: LoginFormProps) {
         return;
       }
 
-      // Check if MFA is required
+      
       if (result.requiresMFA) {
         setRequiresMFA(true);
         setMfaUserId(result.userId);
@@ -59,7 +59,7 @@ export function LoginForm({ onMFARequired }: LoginFormProps) {
         return;
       }
 
-      // Successful login
+      
       router.push("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
@@ -93,7 +93,7 @@ export function LoginForm({ onMFARequired }: LoginFormProps) {
         return;
       }
 
-      // Successful MFA verification
+      
       router.push("/dashboard");
     } catch (err) {
       console.error("MFA verification error:", err);

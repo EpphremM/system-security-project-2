@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is SUPER_ADMIN (you can add permission check here)
+    
     await initializePredefinedRoles();
 
     return NextResponse.json({

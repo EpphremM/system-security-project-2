@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       session.user.name || session.user.email
     );
 
-    // Store challenge in session or return it to be stored client-side
-    // For simplicity, we'll return it and the client should send it back in verification
+    
+    
 
     return NextResponse.json({
       options,

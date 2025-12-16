@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const { category, logId, startSequence, endSequence } = parsed.data;
 
     if (logId) {
-      // Verify single log
+      
       const result = await detectTampering(logId);
       return NextResponse.json({
         valid: !result.tampered,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         reason: result.reason,
       });
     } else if (category) {
-      // Verify hash chain for category
+      
       const result = await verifyHashChain(
         category,
         startSequence,

@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { UserRole, SecurityLevel } from "@/generated/prisma/enums";
 
-/**
- * Get user lifecycle statistics
- */
+
 export async function getUserLifecycleStats(): Promise<{
   total: number;
   active: number;
@@ -45,7 +43,7 @@ export async function getUserLifecycleStats(): Promise<{
   const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   for (const user of users) {
-    // Count by status
+    
     if (user.accountLockedUntil && user.accountLockedUntil > now) {
       stats.locked++;
     } else if (!user.emailVerified) {
@@ -56,14 +54,14 @@ export async function getUserLifecycleStats(): Promise<{
       stats.inactive++;
     }
 
-    // Count by department
+    
     stats.byDepartment[user.department] = (stats.byDepartment[user.department] || 0) + 1;
 
-    // Count by role
+    
     const roleName = user.role?.name || user.legacyRole || "NONE";
     stats.byRole[roleName] = (stats.byRole[roleName] || 0) + 1;
 
-    // Recent activity
+    
     stats.recentActivity.push({
       userId: user.id,
       email: user.email,
@@ -71,7 +69,7 @@ export async function getUserLifecycleStats(): Promise<{
     });
   }
 
-  // Sort recent activity
+  
   stats.recentActivity.sort((a, b) => {
     if (!a.lastLogin) return 1;
     if (!b.lastLogin) return -1;
@@ -92,9 +90,7 @@ export async function getUserLifecycleStats(): Promise<{
   };
 }
 
-/**
- * Bulk user operations
- */
+
 export async function bulkUserOperation(
   userIds: string[],
   operation: "LOCK" | "UNLOCK" | "DEACTIVATE" | "ACTIVATE" | "DELETE" | "RESET_PASSWORD",
@@ -114,7 +110,7 @@ export async function bulkUserOperation(
           await prisma.user.update({
             where: { id: userId },
             data: {
-              accountLockedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+              accountLockedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), 
             },
           });
           break;
@@ -130,11 +126,11 @@ export async function bulkUserOperation(
           break;
 
         case "DEACTIVATE":
-          // Mark as inactive (would need an active field)
+          
           break;
 
         case "ACTIVATE":
-          // Mark as active
+          
           break;
 
         case "DELETE":
@@ -144,7 +140,7 @@ export async function bulkUserOperation(
           break;
 
         case "RESET_PASSWORD":
-          // Trigger password reset (would need password reset flow)
+          
           break;
       }
       success++;
@@ -156,7 +152,7 @@ export async function bulkUserOperation(
     }
   }
 
-  // Log bulk operation
+  
   await prisma.auditLog.create({
     data: {
       userId: performedBy,

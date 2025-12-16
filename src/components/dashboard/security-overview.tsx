@@ -59,7 +59,7 @@ export function SecurityOverview() {
     }
 
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -90,7 +90,7 @@ export function SecurityOverview() {
     );
   }
 
-  // Ensure arrays exist before using slice
+  
   const topIPs = data.failedLogins?.topIPs || [];
 
   const getHealthStatusColor = (status: string) => {
@@ -108,7 +108,7 @@ export function SecurityOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Key Metrics */}
+      
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

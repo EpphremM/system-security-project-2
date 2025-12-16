@@ -1,15 +1,4 @@
-/**
- * Unified Access Control System
- * 
- * This module combines all authorization mechanisms:
- * 1. RBAC (Role-Based Access Control) - Check user role permissions
- * 2. MAC (Mandatory Access Control) - Check security clearance
- * 3. DAC (Discretionary Access Control) - Check resource ownership/sharing
- * 4. RuBAC (Rule-Based Access Control) - Check time/location/device rules
- * 5. ABAC (Attribute-Based Access Control) - Check attribute-based policies
- * 
- * All checks must pass for access to be granted.
- */
+
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -21,33 +10,33 @@ import { enforceABAC } from "@/middleware/abac";
 import { userHasPermission } from "@/lib/access/rbac";
 
 export interface AccessControlOptions {
-  // Resource information
+  
   resourceType: string;
   resourceId?: string;
-  action: string; // "read", "write", "delete", "execute", etc.
+  action: string; 
   
-  // Authorization mechanisms to apply
-  checkRBAC?: boolean; // Role-based access control
-  checkMAC?: boolean; // Mandatory access control (security clearance)
-  checkDAC?: boolean; // Discretionary access control (ownership/sharing)
-  checkRuBAC?: boolean; // Rule-based access control (time/location/device)
-  checkABAC?: boolean; // Attribute-based access control
   
-  // MAC options
+  checkRBAC?: boolean; 
+  checkMAC?: boolean; 
+  checkDAC?: boolean; 
+  checkRuBAC?: boolean; 
+  checkABAC?: boolean; 
+  
+  
   targetSecurityLevel?: string;
   targetCompartments?: string[];
   
-  // ABAC context
+  
   abacContext?: {
     networkSecurityLevel?: string;
     threatIntelligenceScore?: number;
     systemMaintenanceStatus?: string;
   };
   
-  // Required permission (for RBAC)
-  requiredPermission?: string; // e.g., "view_visitors", "manage_users"
   
-  // Route path (for route-based RBAC)
+  requiredPermission?: string; 
+  
+  
   routePath?: string;
 }
 
@@ -64,17 +53,14 @@ export interface AccessControlResult {
   };
 }
 
-/**
- * Unified access control check
- * Applies all specified authorization mechanisms in order
- */
+
 export async function checkAccess(
   request: NextRequest,
   options: AccessControlOptions
 ): Promise<AccessControlResult> {
   const session = await auth();
   
-  // Must be authenticated
+  
   if (!session?.user?.id) {
     return {
       allowed: false,
@@ -91,7 +77,7 @@ export async function checkAccess(
   const reasons: string[] = [];
   const checkedMechanisms: AccessControlResult["checkedMechanisms"] = {};
 
-  // SUPER_ADMIN bypass: Grant all permissions immediately
+  
   if (userRole === "SUPER_ADMIN") {
     return {
       allowed: true,
@@ -105,12 +91,12 @@ export async function checkAccess(
     };
   }
 
-  // 1. RBAC (Role-Based Access Control) - Check FIRST
+  
   if (options.checkRBAC !== false) {
     let rbacAllowed = true;
     let rbacReason: string | undefined;
 
-    // Check route access if route path provided
+    
     if (options.routePath) {
       if (!canAccessRoute(userRole, options.routePath)) {
         rbacAllowed = false;

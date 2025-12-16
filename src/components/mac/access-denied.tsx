@@ -31,7 +31,7 @@ export function AccessDenied({
   onContactAdmin,
 }: AccessDeniedProps) {
   useEffect(() => {
-    // Log the access attempt
+    
     fetch("/api/audit/query", {
       method: "POST",
       headers: {

@@ -1,15 +1,13 @@
 import zxcvbn from "zxcvbn";
 
 export interface PasswordStrength {
-  score: number; // 0-4 (0 = weak, 4 = very strong)
+  score: number; 
   feedback: string[];
   crackTime: string;
   strength: "weak" | "fair" | "good" | "strong" | "very-strong";
 }
 
-/**
- * Calculate password strength using zxcvbn
- */
+
 export function calculatePasswordStrength(password: string): PasswordStrength {
   const result = zxcvbn(password);
   
@@ -39,9 +37,7 @@ export function calculatePasswordStrength(password: string): PasswordStrength {
   };
 }
 
-/**
- * Get password strength color for UI
- */
+
 export function getPasswordStrengthColor(strength: PasswordStrength["strength"]): string {
   const colors = {
     weak: "text-red-500",
@@ -53,12 +49,11 @@ export function getPasswordStrengthColor(strength: PasswordStrength["strength"])
   return colors[strength];
 }
 
-/**
- * Get password strength progress percentage
- */
+
 export function getPasswordStrengthProgress(score: number): number {
-  return ((score + 1) / 5) * 100; // 0-4 score to 0-100%
+  return ((score + 1) / 5) * 100; 
 }
+
 
 
 

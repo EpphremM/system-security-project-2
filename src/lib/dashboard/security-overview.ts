@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-/**
- * Get security overview data
- */
+
 export async function getSecurityOverview(): Promise<{
   threats: {
     active: number;
@@ -39,7 +37,7 @@ export async function getSecurityOverview(): Promise<{
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get active threats
+  
   const [activeThreats, criticalThreats, highThreats, mediumThreats, lowThreats] = await Promise.all([
     prisma.threatIntelligence.count({
       where: { status: "ACTIVE" },
@@ -58,7 +56,7 @@ export async function getSecurityOverview(): Promise<{
     }),
   ]);
 
-  // Get active sessions
+  
   const [activeSessions, recentSessions] = await Promise.all([
     prisma.session.count({
       where: {
@@ -73,7 +71,7 @@ export async function getSecurityOverview(): Promise<{
     }),
   ]);
 
-  // Get failed login attempts
+  
   const failedLogins24h = await prisma.auditLog.count({
     where: {
       logType: "AUTH_FAILURE",
@@ -88,7 +86,7 @@ export async function getSecurityOverview(): Promise<{
     },
   });
 
-  // Get top IPs with failed logins
+  
   const failedLoginLogs = await prisma.auditLog.findMany({
     where: {
       logType: "AUTH_FAILURE",
@@ -112,12 +110,12 @@ export async function getSecurityOverview(): Promise<{
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
-  // Get latest system health
+  
   const latestHealth = await prisma.systemHealth.findFirst({
     orderBy: { recordedAt: "desc" },
   });
 
-  // Get system health metrics (placeholder - in production, get from monitoring)
+  
   const systemHealth = {
     status: latestHealth?.status || "UNKNOWN",
     metrics: {
@@ -154,9 +152,7 @@ export async function getSecurityOverview(): Promise<{
   };
 }
 
-/**
- * Get real-time threat dashboard data
- */
+
 export async function getThreatDashboard(): Promise<{
   activeThreats: any[];
   threatMap: Array<{ ip: string; country?: string; severity: string; count: number }>;
@@ -166,7 +162,7 @@ export async function getThreatDashboard(): Promise<{
     const now = new Date();
     const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // Get active threats
+    
     const activeThreats = await prisma.threatIntelligence.findMany({
     where: {
       status: { in: ["ACTIVE", "INVESTIGATING"] },
@@ -177,7 +173,7 @@ export async function getThreatDashboard(): Promise<{
     take: 50,
   });
 
-  // Get threat map data
+  
   const threatIPs = await prisma.threatIntelligence.findMany({
     where: {
       ipAddress: { not: null },
@@ -210,7 +206,7 @@ export async function getThreatDashboard(): Promise<{
     ...data,
   }));
 
-  // Get threat trends (last 7 days)
+  
   const threatTrends: Array<{ date: string; count: number }> = [];
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now);
@@ -241,7 +237,7 @@ export async function getThreatDashboard(): Promise<{
     };
   } catch (error) {
     console.error("Error in getThreatDashboard:", error);
-    // Return empty data if there's an error (e.g., table doesn't exist)
+    
     return {
       activeThreats: [],
       threatMap: [],
@@ -250,9 +246,7 @@ export async function getThreatDashboard(): Promise<{
   }
 }
 
-/**
- * Get active sessions monitor data
- */
+
 export async function getActiveSessionsMonitor(): Promise<{
   total: number;
   byUser: Array<{ userId: string; email: string; count: number; lastActivity: Date }>;
@@ -282,7 +276,7 @@ export async function getActiveSessionsMonitor(): Promise<{
     },
   });
 
-  // Group by user
+  
   const byUserMap: Record<string, { email: string; count: number; lastActivity: Date }> = {};
   for (const session of sessions) {
     if (session.user) {
@@ -306,7 +300,7 @@ export async function getActiveSessionsMonitor(): Promise<{
     ...data,
   }));
 
-  // Group by device type
+  
   const byDeviceMap: Record<string, number> = {};
   for (const session of sessions) {
     const deviceType = session.deviceType || "UNKNOWN";
@@ -318,7 +312,7 @@ export async function getActiveSessionsMonitor(): Promise<{
     count,
   }));
 
-  // Group by location
+  
   const byLocationMap: Record<string, number> = {};
   for (const session of sessions) {
     const location = session.location || "UNKNOWN";
@@ -330,7 +324,7 @@ export async function getActiveSessionsMonitor(): Promise<{
     count,
   }));
 
-  // Recent activity
+  
   const recentActivity = sessions
     .filter((s) => s.lastActivityAt && s.lastActivityAt >= last24h)
     .slice(0, 20)
@@ -351,7 +345,7 @@ export async function getActiveSessionsMonitor(): Promise<{
     };
   } catch (error) {
     console.error("Error in getActiveSessionsMonitor:", error);
-    // Return empty data if there's an error (e.g., table doesn't exist)
+    
     return {
       total: 0,
       byUser: [],
@@ -362,9 +356,7 @@ export async function getActiveSessionsMonitor(): Promise<{
   }
 }
 
-/**
- * Record system health
- */
+
 export async function recordSystemHealth(metrics: {
   cpuUsage?: number;
   memoryUsage?: number;
@@ -374,7 +366,7 @@ export async function recordSystemHealth(metrics: {
   apiStatus?: string;
   backupStatus?: string;
 }): Promise<string> {
-  // Determine overall status
+  
   let status: string = "HEALTHY";
   if (metrics.cpuUsage && metrics.cpuUsage > 90) status = "CRITICAL";
   else if (metrics.memoryUsage && metrics.memoryUsage > 90) status = "CRITICAL";
@@ -383,7 +375,7 @@ export async function recordSystemHealth(metrics: {
   else if (metrics.memoryUsage && metrics.memoryUsage > 80) status = "WARNING";
   else if (metrics.diskUsage && metrics.diskUsage > 80) status = "WARNING";
 
-  // Get current security metrics
+  
   const now = new Date();
   const activeThreats = await prisma.threatIntelligence.count({
     where: { status: "ACTIVE" },
@@ -392,7 +384,7 @@ export async function recordSystemHealth(metrics: {
   const failedLogins = await prisma.auditLog.count({
     where: {
       logType: "AUTH_FAILURE",
-      createdAt: { gte: new Date(now.getTime() - 60 * 60 * 1000) }, // Last hour
+      createdAt: { gte: new Date(now.getTime() - 60 * 60 * 1000) }, 
     },
   });
 

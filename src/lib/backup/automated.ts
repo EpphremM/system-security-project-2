@@ -5,9 +5,7 @@ import { encryptLogData } from "@/lib/logging/encryption";
 import { logBackupStart, logBackupComplete, logBackupFailed, logBackupVerified } from "@/lib/logging/system";
 import { alertBackupFailure } from "@/lib/alerting/immediate";
 
-/**
- * Perform full backup
- */
+
 export async function performFullBackup(
   createdBy?: string
 ): Promise<string> {

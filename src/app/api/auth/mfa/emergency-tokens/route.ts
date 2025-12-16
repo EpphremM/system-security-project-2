@@ -28,12 +28,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate emergency token (expires in 30 days)
+    
     const token = generateEmergencyToken();
     const hashedToken = await hashEmergencyToken(token);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // Store emergency token
+    
     await prisma.mFAEmergencyToken.create({
       data: {
         userId: session.user.id,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      token, // Return plain token only once - user must save it
+      token, 
       expiresAt,
       message: "Emergency token generated successfully",
     });
@@ -68,9 +68,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get remaining unused emergency tokens
- */
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

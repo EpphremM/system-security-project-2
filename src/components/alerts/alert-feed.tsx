@@ -29,17 +29,17 @@ export function AlertFeed() {
 
   useEffect(() => {
     fetchAlerts();
-    // Poll for new alerts every 10 seconds
+    
     const interval = setInterval(fetchAlerts, 10000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Play sound for critical alerts
+    
     if (soundEnabled && alerts.some((a) => !a.acknowledged && a.severity === "CRITICAL")) {
-      // Play notification sound (optional)
-      // const audio = new Audio("/notification.mp3");
-      // audio.play().catch(() => {});
+      
+      
+      
     }
   }, [alerts, soundEnabled]);
 

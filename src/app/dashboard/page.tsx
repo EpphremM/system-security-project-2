@@ -10,8 +10,8 @@ export default async function DashboardPage() {
     redirect("/auth/login");
   }
 
-  // Check if user is a regular user (not admin/security/IT/HR)
-  // Admin roles: ADMIN, SUPER_ADMIN, SECURITY, IT_ADMIN, HR
+  
+  
   const adminRoles = ["ADMIN", "SUPER_ADMIN", "SECURITY", "IT_ADMIN", "HR"];
   const isRegularUser = !session.user.role || !adminRoles.includes(session.user.role);
 
@@ -25,12 +25,12 @@ export default async function DashboardPage() {
       </div>
       
       {isRegularUser ? (
-        // Visitor Dashboard for regular users
+        
         <VisitorDashboard userId={session.user.id} />
       ) : (
-        // Admin Dashboard
+        
         <>
-          {/* Quick Stats */}
+          
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Security Overview Component */}
+          
           <SecurityOverview />
         </>
       )}

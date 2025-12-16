@@ -124,7 +124,7 @@ export function ShareModal({
 
       await Promise.all(sharePromises);
       onOpenChange(false);
-      // Reset form
+      
       setSelectedUsers(new Set());
       setPermissions({});
       setExpiryDate("");
@@ -148,7 +148,7 @@ export function ShareModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* User Search */}
+          
           <div className="space-y-2">
             <Label>Search Users</Label>
             <div className="relative">
@@ -162,7 +162,7 @@ export function ShareModal({
             </div>
           </div>
 
-          {/* User List */}
+          
           <div className="border rounded-md max-h-64 overflow-y-auto">
             {loading ? (
               <div className="flex justify-center py-8">

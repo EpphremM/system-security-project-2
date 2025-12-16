@@ -2,9 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { LogCategory } from "@/generated/prisma/enums";
 import { encryptLogData } from "./encryption";
 
-/**
- * Sync logs to SIEM
- */
+
 export async function syncToSIEM(
   siemId: string,
   logIds?: string[]
@@ -21,18 +19,18 @@ export async function syncToSIEM(
     throw new Error("SIEM integration not found or disabled");
   }
 
-  // Get logs to sync
+  
   const where: any = {};
   if (logIds) {
     where.id = { in: logIds };
   } else {
-    // Get logs since last sync
+    
     where.createdAt = siem.lastSyncAt
       ? { gt: siem.lastSyncAt }
-      : { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }; // Last 24 hours
+      : { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }; 
   }
 
-  // Apply filters if configured
+  
   if (siem.filters) {
     const filters = siem.filters as any;
     if (filters.category) {
@@ -49,7 +47,7 @@ export async function syncToSIEM(
   const logs = await prisma.auditLog.findMany({
     where,
     orderBy: { createdAt: "asc" },
-    take: 1000, // Batch size
+    take: 1000, 
     include: {
       user: {
         select: {
@@ -64,7 +62,7 @@ export async function syncToSIEM(
   let synced = 0;
   let failed = 0;
 
-  // Format and send to SIEM
+  
   for (const log of logs) {
     try {
       const formatted = formatLogForSIEM(log, siem.type);

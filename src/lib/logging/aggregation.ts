@@ -1,12 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { LogCategory, LogType } from "@/generated/prisma/enums";
 
-/**
- * Aggregate logs in real-time
- */
+
 export async function aggregateLogs(
   category?: LogCategory,
-  timeWindow?: number // seconds
+  timeWindow?: number 
 ): Promise<{
   total: number;
   byType: Record<string, number>;
@@ -44,7 +42,7 @@ export async function aggregateLogs(
     },
   });
 
-  // Aggregate by type
+  
   const byType: Record<string, number> = {};
   const byResource: Record<string, number> = {};
   const byUser: Record<string, number> = {};
@@ -66,9 +64,7 @@ export async function aggregateLogs(
   };
 }
 
-/**
- * Get log statistics
- */
+
 export async function getLogStatistics(
   startDate: Date,
   endDate: Date,

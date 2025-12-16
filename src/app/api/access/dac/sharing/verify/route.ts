@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment use count
+    
     await useSharingLink(token);
 
     return NextResponse.json({

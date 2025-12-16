@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AttributeType, AttributeCategory, ValueType } from "@/generated/prisma/enums";
 
-/**
- * Get all user attributes
- */
+
 export async function getUserAttributes(userId: string) {
   const attributes = await prisma.userAttribute.findMany({
     where: {
@@ -18,7 +16,7 @@ export async function getUserAttributes(userId: string) {
     },
   });
 
-  // Convert to key-value map
+  
   const attributeMap: Record<string, any> = {};
   for (const attr of attributes) {
     attributeMap[attr.attribute.name] = parseAttributeValue(attr.value, attr.attribute.valueType);
@@ -27,11 +25,9 @@ export async function getUserAttributes(userId: string) {
   return attributeMap;
 }
 
-/**
- * Get all resource attributes
- */
+
 export async function getResourceAttributes(resourceType: string, resourceId: string) {
-  // Get resource
+  
   const resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -52,7 +48,7 @@ export async function getResourceAttributes(resourceType: string, resourceId: st
     return {};
   }
 
-  // Convert to key-value map
+  
   const attributeMap: Record<string, any> = {};
   for (const attr of resource.resourceAttributes) {
     attributeMap[attr.attribute.name] = parseAttributeValue(attr.value, attr.attribute.valueType);
@@ -61,9 +57,7 @@ export async function getResourceAttributes(resourceType: string, resourceId: st
   return attributeMap;
 }
 
-/**
- * Get environment attributes
- */
+
 export async function getEnvironmentAttributes(context: {
   ipAddress?: string;
   currentTime?: Date;
@@ -73,7 +67,7 @@ export async function getEnvironmentAttributes(context: {
 }): Promise<Record<string, any>> {
   const attributes: Record<string, any> = {};
 
-  // Time attributes
+  
   const now = context.currentTime || new Date();
   attributes["current_time"] = now.toISOString();
   attributes["hour"] = now.getHours();
@@ -84,29 +78,29 @@ export async function getEnvironmentAttributes(context: {
   attributes["is_weekend"] = now.getDay() === 0 || now.getDay() === 6;
   attributes["is_business_hours"] = now.getHours() >= 8 && now.getHours() < 18;
 
-  // Network security level
+  
   if (context.networkSecurityLevel) {
     attributes["network_security_level"] = context.networkSecurityLevel;
   }
 
-  // Threat intelligence score
+  
   if (context.threatIntelligenceScore !== undefined) {
     attributes["threat_intelligence_score"] = context.threatIntelligenceScore;
   }
 
-  // System maintenance status
+  
   if (context.systemMaintenanceStatus) {
     attributes["system_maintenance_status"] = context.systemMaintenanceStatus;
     attributes["is_maintenance_mode"] = context.systemMaintenanceStatus === "MAINTENANCE";
   }
 
-  // IP-based attributes
+  
   if (context.ipAddress) {
-    // Check if IP is from office network
+    
     const isOfficeNetwork = await checkOfficeNetwork(context.ipAddress);
     attributes["is_office_network"] = isOfficeNetwork;
 
-    // Check if IP is from VPN
+    
     const isVPN = await checkVPNConnection(context.ipAddress);
     attributes["is_vpn"] = isVPN;
   }
@@ -114,9 +108,7 @@ export async function getEnvironmentAttributes(context: {
   return attributes;
 }
 
-/**
- * Evaluate ABAC policy
- */
+
 export async function evaluateABACPolicy(
   policyId: string,
   userId: string,
@@ -135,35 +127,33 @@ export async function evaluateABACPolicy(
   });
 
   if (!policy || !policy.enabled || policy.policyType !== "ABAC") {
-    return { allowed: true }; // If policy doesn't exist or is disabled, allow
+    return { allowed: true }; 
   }
 
   if (!policy.attributes) {
-    return { allowed: true }; // No attribute conditions
+    return { allowed: true }; 
   }
 
-  // Get all attributes
+  
   const userAttributes = await getUserAttributes(userId);
   const resourceAttributes = await getResourceAttributes(resourceType, resourceId);
   const environmentAttributes = await getEnvironmentAttributes(context);
 
-  // Combine all attributes
+  
   const allAttributes = {
     user: userAttributes,
     resource: resourceAttributes,
     environment: environmentAttributes,
   };
 
-  // Evaluate attribute conditions
+  
   const conditions = policy.attributes as any;
   const result = evaluateAttributeConditions(conditions, allAttributes);
 
   return result;
 }
 
-/**
- * Evaluate attribute conditions
- */
+
 export function evaluateAttributeConditions(
   conditions: any,
   attributes: {
@@ -172,14 +162,14 @@ export function evaluateAttributeConditions(
     environment: Record<string, any>;
   }
 ): { allowed: boolean; reason?: string } {
-  // Handle different condition structures
+  
 
-  // Simple condition: { attribute: "user.department", operator: "equals", value: "IT" }
+  
   if (conditions.attribute && conditions.operator) {
     return evaluateSingleCondition(conditions, attributes);
   }
 
-  // Complex condition with AND/OR logic
+  
   if (conditions.operator === "AND" || conditions.operator === "OR") {
     const results = (conditions.conditions || []).map((cond: any) =>
       evaluateAttributeConditions(cond, attributes)
@@ -192,13 +182,13 @@ export function evaluateAttributeConditions(
       }
       return { allowed: true };
     } else {
-      // OR
+      
       const passed = results.find((r: any) => r.allowed);
       return passed || { allowed: false, reason: "None of the conditions matched" };
     }
   }
 
-  // Array of conditions (default to AND)
+  
   if (Array.isArray(conditions)) {
     for (const condition of conditions) {
       const result = evaluateAttributeConditions(condition, attributes);
@@ -209,17 +199,17 @@ export function evaluateAttributeConditions(
     return { allowed: true };
   }
 
-  // Object with multiple conditions (default to AND)
+  
   if (typeof conditions === "object") {
     for (const [key, value] of Object.entries(conditions)) {
-      // Handle nested conditions
+      
       if (typeof value === "object" && value !== null) {
         const result = evaluateAttributeConditions(value, attributes);
         if (!result.allowed) {
           return result;
         }
       } else {
-        // Simple key-value check
+        
         const attributeValue = getAttributeValue(key, attributes);
         if (attributeValue !== value) {
           return {

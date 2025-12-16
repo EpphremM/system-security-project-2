@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ReportType } from "@/generated/prisma/enums";
 
-/**
- * Generate access control review report
- */
+
 export async function generateAccessControlReviewReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -13,7 +11,7 @@ export async function generateAccessControlReviewReport(options?: {
   const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const endDate = options?.endDate || new Date();
 
-  // Get access review data
+  
   const { getAccessReviewData } = await import("@/lib/dashboard/user-management");
   const reviewData = await getAccessReviewData({
     department: options?.department,
@@ -21,7 +19,7 @@ export async function generateAccessControlReviewReport(options?: {
     lastReviewBefore: startDate,
   });
 
-  // Get permission changes
+  
   const permissionChanges = await prisma.auditLog.findMany({
     where: {
       logType: "PERMISSION_CHANGE",
@@ -35,7 +33,7 @@ export async function generateAccessControlReviewReport(options?: {
     orderBy: { createdAt: "desc" },
   });
 
-  // Get role assignments
+  
   const roleAssignments = await prisma.roleAssignment.findMany({
     where: {
       assignedAt: { gte: startDate, lte: endDate },
@@ -78,9 +76,7 @@ export async function generateAccessControlReviewReport(options?: {
   };
 }
 
-/**
- * Generate user permission report
- */
+
 export async function generateUserPermissionReport(options?: {
   userId?: string;
   department?: string;
@@ -149,9 +145,7 @@ export async function generateUserPermissionReport(options?: {
   };
 }
 
-/**
- * Generate data access audit trail report
- */
+
 export async function generateDataAccessAuditTrailReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -182,7 +176,7 @@ export async function generateDataAccessAuditTrailReport(options?: {
     orderBy: { createdAt: "desc" },
   });
 
-  // Group by user
+  
   const byUser: Record<string, any> = {};
   for (const log of accessLogs) {
     if (log.user) {
@@ -209,7 +203,7 @@ export async function generateDataAccessAuditTrailReport(options?: {
     }
   }
 
-  // Group by resource
+  
   const byResource: Record<string, any> = {};
   for (const log of accessLogs) {
     const resourceKey = `${log.resource}:${log.resourceId || "N/A"}`;

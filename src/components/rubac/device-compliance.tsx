@@ -104,7 +104,7 @@ export function DeviceCompliance({ resourceId, resourceType }: DeviceComplianceP
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Status */}
+        
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center gap-3">
             {getStatusIcon(deviceInfo.complianceStatus)}
@@ -122,7 +122,7 @@ export function DeviceCompliance({ resourceId, resourceType }: DeviceComplianceP
           </Badge>
         </div>
 
-        {/* Device Info */}
+        
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Device Information</h4>
           <div className="grid gap-2 text-sm">
@@ -145,7 +145,7 @@ export function DeviceCompliance({ resourceId, resourceType }: DeviceComplianceP
           </div>
         </div>
 
-        {/* Issues */}
+        
         {deviceInfo.issues.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Compliance Issues</h4>

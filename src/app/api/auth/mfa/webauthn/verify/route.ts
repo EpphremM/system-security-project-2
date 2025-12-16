@@ -6,7 +6,7 @@ import { verifyWebAuthnRegistration } from "@/lib/utils/mfa/webauthn";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 
 const verifySchema = z.object({
-  response: z.any(), // RegistrationResponseJSON
+  response: z.any(), 
   challenge: z.string(),
   deviceName: z.string().optional(),
 });
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const { response, challenge, deviceName } = parsed.data;
 
-    // Verify registration
+    
     const { verified } = await verifyWebAuthnRegistration(
       session.user.id,
       response as RegistrationResponseJSON,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Enable MFA if not already enabled
+    
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

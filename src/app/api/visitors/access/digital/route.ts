@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get("token");
 
     if (token) {
-      // Verify web portal token
+      
       const result = await verifyWebPortalToken(token);
       return NextResponse.json(result);
     }

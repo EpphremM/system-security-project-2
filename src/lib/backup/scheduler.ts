@@ -1,22 +1,20 @@
 import { performFullBackup, performIncrementalBackup, performTransactionLogBackup } from "./automated";
 
-/**
- * Schedule backup based on type
- */
+
 export async function scheduleBackup(backupType: string): Promise<void> {
   switch (backupType) {
     case "FULL":
-      // Weekly on Sunday at 2:00 AM
+      
       await performFullBackup();
       break;
 
     case "INCREMENTAL":
-      // Daily at 2:00 AM
+      
       await performIncrementalBackup();
       break;
 
     case "TRANSACTION_LOG":
-      // Every 4 hours
+      
       await performTransactionLogBackup();
       break;
 

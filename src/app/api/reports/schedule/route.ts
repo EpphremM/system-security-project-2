@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const { reportType, frequency, recipients, format, filters } = parsed.data;
 
-    // Calculate next run time
+    
     const nextRunAt = calculateNextRunTime(frequency);
 
     const report = await prisma.scheduledReport.create({

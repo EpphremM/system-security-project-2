@@ -47,7 +47,7 @@ export default function VisitorsPage() {
       const response = await fetch("/api/visitors/my-visits");
       if (response.ok) {
         const data = await response.json();
-        // Transform the data to match our interface
+        
         const transformedVisitors = (data.recentVisits || []).map((visit: any) => ({
           id: visit.id,
           firstName: visit.firstName || "",

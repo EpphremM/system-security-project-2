@@ -2,16 +2,14 @@ import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
 import { NextRequest } from "next/server";
 
 const ALGORITHM = "aes-256-gcm";
-const KEY_LENGTH = 32; // 256 bits
-const IV_LENGTH = 12; // 96 bits for GCM
-const TAG_LENGTH = 16; // 128 bits for GCM
+const KEY_LENGTH = 32; 
+const IV_LENGTH = 12; 
+const TAG_LENGTH = 16; 
 
-// Encryption key (should be in environment variable)
+
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || randomBytes(KEY_LENGTH).toString("hex");
 
-/**
- * Encrypt password for transmission
- */
+
 export function encryptPassword(password: string): {
   encrypted: string;
   iv: string;
@@ -34,9 +32,7 @@ export function encryptPassword(password: string): {
   };
 }
 
-/**
- * Decrypt password after transmission
- */
+
 export function decryptPassword(
   encrypted: string,
   iv: string,
@@ -55,34 +51,28 @@ export function decryptPassword(
   return decrypted;
 }
 
-/**
- * Generate nonce for request validation
- */
+
 export function generateNonce(): string {
   return randomBytes(16).toString("hex");
 }
 
-/**
- * Validate nonce (should be used within time window)
- */
+
 export function validateNonce(nonce: string, timestamp: number): boolean {
-  const NONCE_WINDOW = 5 * 60 * 1000; // 5 minutes
+  const NONCE_WINDOW = 5 * 60 * 1000; 
   const now = Date.now();
   const age = now - timestamp;
   
-  // Check if nonce is within valid time window
+  
   if (age < 0 || age > NONCE_WINDOW) {
     return false;
   }
   
-  // In production, store used nonces and check for replay attacks
-  // For now, basic time-based validation
+  
+  
   return true;
 }
 
-/**
- * Extract and validate nonce from request
- */
+
 export function extractNonce(request: NextRequest): {
   nonce: string | null;
   timestamp: number | null;
@@ -105,20 +95,17 @@ export function extractNonce(request: NextRequest): {
   return { nonce, timestamp, valid };
 }
 
-/**
- * Check TLS version (should be 1.3)
- * Note: This is handled by the server/reverse proxy, but we can log it
- */
+
 export function checkTLSVersion(request: NextRequest): {
   version: string | null;
   secure: boolean;
 } {
-  // TLS version is typically in the protocol header
+  
   const protocol = request.headers.get("x-forwarded-proto");
   const forwardedSsl = request.headers.get("x-forwarded-ssl");
   
-  // In production, check actual TLS version from server
-  // For now, check if connection is HTTPS
+  
+  
   const isSecure = protocol === "https" || forwardedSsl === "on";
   
   return {
@@ -126,6 +113,7 @@ export function checkTLSVersion(request: NextRequest): {
     secure: isSecure,
   };
 }
+
 
 
 

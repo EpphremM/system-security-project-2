@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Use API route for better error handling and lockout checks
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -43,20 +43,20 @@ export default function LoginPage() {
         return;
       }
 
-      // Check if MFA is required
+      
       if (result.requiresMFA) {
-        // Store credentials temporarily for MFA verification
+        
         sessionStorage.setItem("mfa_email", email);
         sessionStorage.setItem("mfa_password", password);
         sessionStorage.setItem("mfa_userId", result.userId);
         sessionStorage.setItem("mfa_methods", JSON.stringify(result.availableMethods));
         
-        // Redirect to MFA verification page
+        
         router.push("/auth/verify-mfa");
         return;
       }
 
-      // If successful, sign in with NextAuth to create session
+      
       const signInResult = await signIn("credentials", {
         email,
         password,

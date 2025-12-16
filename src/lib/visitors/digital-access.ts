@@ -1,16 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { encryptLogData } from "@/lib/logging/encryption";
 
-// Edge-compatible random functions
+
 function randomBytes(length: number): Uint8Array {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return array;
 }
 
-/**
- * Create digital access for visitor
- */
+
 export async function createDigitalAccess(
   visitorId: string,
   options?: {
@@ -39,7 +37,7 @@ export async function createDigitalAccess(
     throw new Error("Visitor must be checked in to grant digital access");
   }
 
-  // Generate WiFi credentials if enabled
+  
   let wifiUsername: string | undefined;
   let wifiPassword: string | undefined;
   let encryptedPassword: string | undefined;

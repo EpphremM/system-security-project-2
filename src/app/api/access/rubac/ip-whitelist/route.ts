@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 const createSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  ipRanges: z.array(z.string()), // CIDR notation
+  ipRanges: z.array(z.string()), 
   location: z.string().optional(),
   enabled: z.boolean().optional(),
 });

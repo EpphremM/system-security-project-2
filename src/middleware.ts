@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { addSecurityHeaders } from "@/middleware/security";
 import { isIPWhitelisted, isCountryBlocked } from "@/lib/security/network";
 
-// Edge-compatible rate limiter (in-memory, per-instance)
+
 const rateLimiters: Map<string, { count: number; resetAt: number }> = new Map();
 
 async function edgeRateLimit(

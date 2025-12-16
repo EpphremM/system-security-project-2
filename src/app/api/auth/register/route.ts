@@ -17,11 +17,11 @@ const registerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   department: z.string().min(1, "Department is required"),
   roleId: z.string().uuid().optional(),
-  captchaToken: z.string().optional(), // CAPTCHA is optional
+  captchaToken: z.string().optional(), 
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms of service",
   }),
-  // Behavioral data
+  
   formFillTime: z.number().optional(),
   mouseMovements: z.number().optional(),
   keystrokes: z.number().optional(),
@@ -29,12 +29,12 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract client metadata
+    
     const metadata = extractClientMetadata(request);
     const deviceFingerprint = generateDeviceFingerprint(request);
     metadata.deviceFingerprint = deviceFingerprint;
 
-    // Rate limiting
+    
     const rateLimitCheck = await checkRegistrationRateLimit(metadata.ipAddress);
     if (!rateLimitCheck.allowed) {
       return NextResponse.json(
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
+    
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
 
-    // Add behavioral data to metadata
+    
     metadata.formFillTime = data.formFillTime;
     metadata.mouseMovements = data.mouseMovements;
     metadata.keystrokes = data.keystrokes;
 
-    // Behavioral analysis
+    
     const behavioralScore = calculateBehavioralScore(metadata);
     if (shouldBlockSubmission(behavioralScore)) {
       return NextResponse.json(
@@ -77,18 +77,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify CAPTCHA (hCaptcha) - Optional/Bypassed for now
+    
     if (data.captchaToken) {
       console.log("CAPTCHA token provided, verifying (non-blocking)...");
       verifyCaptcha(data.captchaToken, metadata.ipAddress).catch((err) => {
         console.warn("CAPTCHA verification error (non-blocking):", err);
       });
-      // Don't block registration even if CAPTCHA fails
+      
     } else {
       console.log("No CAPTCHA token provided, skipping verification");
     }
 
-    // Validate password policy (12+ chars, uppercase, lowercase, numbers, symbols)
+    
     const { validatePasswordPolicy } = await import("@/lib/utils/password-policy");
     const policyResult = validatePasswordPolicy(data.password);
     if (!policyResult.valid) {
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -114,13 +114,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password with Argon2id
+    
     const { hashPassword } = await import("@/lib/utils/password-hashing");
     const { calculatePasswordExpiration } = await import("@/lib/utils/password-policy");
     const passwordHash = await hashPassword(data.password);
     const passwordExpiresAt = calculatePasswordExpiration(new Date());
 
-    // Create user with default USER role
+    
     const user = await prisma.user.create({
       data: {
         email: data.email,
@@ -130,18 +130,18 @@ export async function POST(request: NextRequest) {
         passwordChangedAt: new Date(),
         passwordExpiresAt,
         roleId: data.roleId || null,
-        legacyRole: "USER", // Default role for new users
-        emailVerified: null, // Not verified yet
+        legacyRole: "USER", 
+        emailVerified: null, 
       },
     });
 
-    // Create verification OTP
+    
     const otp = await createVerificationOTP(user.id, user.email);
 
-    // Send verification email with OTP
+    
     await sendVerificationEmail(user.email, otp, user.name || undefined);
 
-    // Log registration (audit)
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -175,14 +175,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Verify hCaptcha token
- */
+
 async function verifyCaptcha(
   token: string,
   remoteip: string
 ): Promise<boolean> {
-  // In development, if secret key is not set, allow registration (for testing)
+  
   if (!process.env.HCAPTCHA_SECRET_KEY) {
     console.warn("HCAPTCHA_SECRET_KEY not set, skipping CAPTCHA verification");
     return true;
@@ -211,7 +209,7 @@ async function verifyCaptcha(
       response: token,
     });
     
-    // Add remoteip only if provided
+    
     if (remoteip) {
       body.append("remoteip", remoteip);
     }
@@ -238,7 +236,7 @@ async function verifyCaptcha(
       const errorCodes = data["error-codes"] || [];
       console.error("CAPTCHA verification failed. Error codes:", errorCodes);
       
-      // Common error codes and their meanings:
+      
       const errorMessages: Record<string, string> = {
         "missing-input-secret": "Secret key is missing in request",
         "invalid-input-secret": "Secret key is invalid or doesn't match site key",

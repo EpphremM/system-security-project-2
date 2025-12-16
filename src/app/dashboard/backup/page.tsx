@@ -28,7 +28,7 @@ export default function BackupPage() {
 
   useEffect(() => {
     fetchBackups();
-    // Refresh every 30 seconds
+    
     const interval = setInterval(fetchBackups, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -36,8 +36,8 @@ export default function BackupPage() {
   const fetchBackups = async () => {
     try {
       setLoading(true);
-      // This would fetch from a backup status API
-      // For now, we'll use a placeholder
+      
+      
       const response = await fetch("/api/backup/status");
       if (response.ok) {
         const data = await response.json();
@@ -47,7 +47,7 @@ export default function BackupPage() {
       }
     } catch (error) {
       console.error("Failed to fetch backups:", error);
-      // Set empty array on error
+      
       setBackups([]);
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ export default function BackupPage() {
       });
 
       if (response.ok) {
-        // Refresh backup list
+        
         setTimeout(() => {
           fetchBackups();
           setBackingUp(false);
@@ -127,7 +127,7 @@ export default function BackupPage() {
         </Button>
       </div>
 
-      {/* Backup Status Cards */}
+      
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -190,7 +190,7 @@ export default function BackupPage() {
         </Card>
       </div>
 
-      {/* Backup List */}
+      
       <Card>
         <CardHeader>
           <CardTitle>Backup History</CardTitle>

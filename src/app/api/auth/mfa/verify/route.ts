@@ -18,8 +18,8 @@ const verifySchema = z.object({
   method: z.enum(["totp", "backup_code", "emergency_token", "email_otp", "webauthn"]),
   code: z.string().optional(),
   token: z.string().optional(),
-  response: z.any().optional(), // AuthenticationResponseJSON for WebAuthn
-  challenge: z.string().optional(), // For WebAuthn
+  response: z.any().optional(), 
+  challenge: z.string().optional(), 
 });
 
 export async function POST(request: NextRequest) {
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verified) {
-      // Log failed MFA attempt
+      
       await prisma.auditLog.create({
         data: {
           userId,
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log successful MFA verification
+    
     await prisma.auditLog.create({
       data: {
         userId,
@@ -206,9 +206,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get WebAuthn authentication options for a user
- */
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

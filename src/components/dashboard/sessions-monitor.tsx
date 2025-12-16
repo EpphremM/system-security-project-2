@@ -39,7 +39,7 @@ export function SessionsMonitor() {
         const response = await fetch("/api/dashboard/security-overview?view=sessions");
         if (response.ok) {
           const result = await response.json();
-          // Ensure all required arrays exist
+          
           setData({
             total: result.total || 0,
             byUser: result.byUser || [],
@@ -48,7 +48,7 @@ export function SessionsMonitor() {
             recentActivity: result.recentActivity || [],
           });
         } else {
-          // Set empty data on error
+          
           setData({
             total: 0,
             byUser: [],
@@ -59,7 +59,7 @@ export function SessionsMonitor() {
         }
       } catch (err) {
         console.error("Failed to fetch sessions data:", err);
-        // Set empty data on error
+        
         setData({
           total: 0,
           byUser: [],
@@ -85,7 +85,7 @@ export function SessionsMonitor() {
     return <Card><CardContent className="pt-6">No data available</CardContent></Card>;
   }
 
-  // Ensure arrays exist before using slice
+  
   const byDevice = data.byDevice || [];
   const byLocation = data.byLocation || [];
   const byUser = data.byUser || [];

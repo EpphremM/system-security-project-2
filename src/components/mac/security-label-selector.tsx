@@ -91,7 +91,7 @@ export function SecurityLabelSelector({
         </Select>
       </div>
 
-      {/* Current Selection Badge */}
+      
       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border ${config.color}`}>
         <Shield className="h-4 w-4" />
         <span className="text-sm font-medium">{config.label}</span>

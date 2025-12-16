@@ -1,11 +1,9 @@
 import { z } from "zod";
 import validator from "validator";
 
-/**
- * Sanitize string input to prevent SQL injection
- */
+
 export function sanitizeSQLInput(input: string): string {
-  // Remove SQL injection patterns
+  
   return input
     .replace(/(['";])/g, "")
     .replace(/--/g, "")
@@ -76,12 +74,10 @@ export function encodeHTML(input: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
+    .replace(/\
 }
 
-/**
- * Validate file upload
- */
+
 export function validateFileUpload(
   file: {
     name: string;
@@ -90,7 +86,7 @@ export function validateFileUpload(
     content?: Buffer;
   },
   options?: {
-    maxSize?: number; // in bytes
+    maxSize?: number; 
     allowedTypes?: string[];
     allowedExtensions?: string[];
     scanForMalware?: boolean;
@@ -99,7 +95,7 @@ export function validateFileUpload(
   valid: boolean;
   error?: string;
 } {
-  // Size validation
+  
   if (options?.maxSize && file.size > options.maxSize) {
     return {
       valid: false,

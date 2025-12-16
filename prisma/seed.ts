@@ -1,4 +1,4 @@
-// Load environment variables
+
 import { config } from "dotenv";
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -8,9 +8,9 @@ import { UserRole } from "../src/generated/prisma/enums";
 import { hashPassword } from "../src/lib/utils/password-hashing";
 import { calculatePasswordExpiration } from "../src/lib/utils/password-policy";
 
-// Note: This seed script requires tsx to run TypeScript directly
-// Install with: pnpm add -D tsx
-// Or use: npx tsx prisma/seed.ts
+
+
+
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is not set. Make sure .env file exists.");

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { policy, testAttributes } = body;
 
-    // Evaluate policy against test attributes
+    
     let allRulesMatch = true;
     const reasons: string[] = [];
 

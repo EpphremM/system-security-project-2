@@ -36,18 +36,18 @@ export function SessionTimeoutWarning({
       const warningTime = (timeoutMinutes - warningMinutes) * 60 * 1000;
       const expiredTime = timeoutMinutes * 60 * 1000;
 
-      // Clear existing timers
+      
       if (warningTimer) clearTimeout(warningTimer);
       if (expiredTimer) clearTimeout(expiredTimer);
       if (countdownInterval) clearInterval(countdownInterval);
 
-      // Set warning timer
+      
       warningTimer = setTimeout(() => {
         setShowWarning(true);
         const remaining = warningMinutes * 60;
         setTimeRemaining(remaining);
 
-        // Update countdown every second
+        
         countdownInterval = setInterval(() => {
           setTimeRemaining((prev) => {
             if (prev <= 1) {
@@ -59,7 +59,7 @@ export function SessionTimeoutWarning({
         }, 1000);
       }, warningTime);
 
-      // Set expired timer
+      
       expiredTimer = setTimeout(() => {
         setIsExpired(true);
         setShowWarning(false);
@@ -67,12 +67,12 @@ export function SessionTimeoutWarning({
       }, expiredTime);
     };
 
-    // Reset timers on user activity
+    
     const resetTimers = () => {
       setupTimers();
     };
 
-    // Listen for user activity
+    
     const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"];
     events.forEach((event) => {
       document.addEventListener(event, resetTimers, { passive: true });
@@ -92,7 +92,7 @@ export function SessionTimeoutWarning({
 
   const handleExtendSession = async () => {
     try {
-      // Refresh session
+      
       const response = await fetch("/api/auth/session/refresh", {
         method: "POST",
       });

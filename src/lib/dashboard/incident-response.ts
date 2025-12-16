@@ -6,9 +6,7 @@ import {
 } from "@/generated/prisma/enums";
 import { sendEmail } from "@/lib/utils/email";
 
-/**
- * Create security incident
- */
+
 export async function createIncident(
   title: string,
   description: string,
@@ -37,12 +35,12 @@ export async function createIncident(
     },
   });
 
-  // Notify assigned user if provided
+  
   if (options?.assignedTo) {
     await notifyIncidentAssignment(incident.id, options.assignedTo);
   }
 
-  // Apply playbook if provided
+  
   if (options?.playbookId) {
     await applyIncidentPlaybook(incident.id, options.playbookId);
   }
@@ -50,9 +48,7 @@ export async function createIncident(
   return incident.id;
 }
 
-/**
- * Update incident status
- */
+
 export async function updateIncidentStatus(
   incidentId: string,
   status: IncidentStatus,
@@ -76,9 +72,7 @@ export async function updateIncidentStatus(
   });
 }
 
-/**
- * Add response step to incident
- */
+
 export async function addIncidentResponseStep(
   incidentId: string,
   step: {
@@ -111,9 +105,7 @@ export async function addIncidentResponseStep(
   });
 }
 
-/**
- * Add communication log entry
- */
+
 export async function addIncidentCommunication(
   incidentId: string,
   communication: {
@@ -145,7 +137,7 @@ export async function addIncidentCommunication(
     },
   });
 
-  // Send communication if type is EMAIL
+  
   if (communication.type === "EMAIL") {
     await sendEmail(
       communication.recipient,

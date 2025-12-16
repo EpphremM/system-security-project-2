@@ -30,7 +30,7 @@ export default function CheckInPage() {
 
   useEffect(() => {
     return () => {
-      // Cleanup camera stream on unmount
+      
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
@@ -118,7 +118,7 @@ export default function CheckInPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Camera/Scanner Section */}
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export default function CheckInPage() {
               </div>
             )}
 
-            {/* Manual Entry */}
+            
             <div className="space-y-2">
               <label className="text-sm font-medium">Or enter manually</label>
               <div className="flex gap-2">
@@ -191,7 +191,7 @@ export default function CheckInPage() {
           </CardContent>
         </Card>
 
-        {/* Current Visitor Display */}
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

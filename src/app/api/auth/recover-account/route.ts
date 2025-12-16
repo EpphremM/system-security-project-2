@@ -16,15 +16,13 @@ const verifyRecoverySchema = z.object({
   newPassword: z.string().min(12),
 });
 
-// Store recovery tokens temporarily (in production, use Redis)
+
 const recoveryTokens = new Map<string, { userId: string; expires: Date }>();
 
-/**
- * Request account recovery
- */
+
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
+    
     const ip = request.ip ?? request.headers.get("x-forwarded-for") ?? "unknown";
     try {
       await authRateLimiter.consume(ip);
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = parsed.data;
 
-    // Find user
+    
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
@@ -58,9 +56,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Don't reveal if user exists (prevent enumeration)
+    
     if (!user || !user.emailVerified) {
-      // Still return success to prevent user enumeration
+      
       return NextResponse.json(
         {
           message: "If an account exists with this email, a recovery link has been sent.",
@@ -69,17 +67,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate recovery token
+    
     const token = randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expires = new Date(Date.now() + 60 * 60 * 1000); 
 
-    // Store token
+    
     recoveryTokens.set(token, { userId: user.id, expires });
 
-    // Send recovery email
+    
     await sendRecoveryEmail(user.email, token, user.name || undefined);
 
-    // Log recovery request
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -107,9 +105,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Verify recovery token and reset password
- */
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -124,7 +120,7 @@ export async function PUT(request: NextRequest) {
 
     const { email, token, newPassword } = parsed.data;
 
-    // Verify token
+    
     const tokenData = recoveryTokens.get(token);
     if (!tokenData || tokenData.expires < new Date()) {
       return NextResponse.json(
@@ -133,7 +129,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Find user
+    
     const user = await prisma.user.findUnique({
       where: { id: tokenData.userId, email },
     });
@@ -145,7 +141,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Validate new password policy
+    
     const { validatePasswordPolicy } = await import("@/lib/utils/password-policy");
     const policyResult = validatePasswordPolicy(newPassword);
     if (!policyResult.valid) {
@@ -158,19 +154,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Hash new password
+    
     const { hashPassword } = await import("@/lib/utils/password-hashing");
     const { addPasswordToHistory } = await import("@/lib/utils/password-history");
     const { calculatePasswordExpiration } = await import("@/lib/utils/password-policy");
 
     const newPasswordHash = await hashPassword(newPassword);
 
-    // Add old password to history
+    
     if (user.passwordHash) {
       await addPasswordToHistory(user.id, user.passwordHash);
     }
 
-    // Update password
+    
     const passwordChangedAt = new Date();
     const passwordExpiresAt = calculatePasswordExpiration(passwordChangedAt);
 
@@ -181,17 +177,17 @@ export async function PUT(request: NextRequest) {
         passwordChangedAt,
         passwordExpiresAt,
         sessionVersion: {
-          increment: 1, // Invalidate all sessions
+          increment: 1, 
         },
-        failedLoginAttempts: 0, // Reset failed attempts
-        accountLockedUntil: null, // Unlock account
+        failedLoginAttempts: 0, 
+        accountLockedUntil: null, 
       },
     });
 
-    // Delete recovery token
+    
     recoveryTokens.delete(token);
 
-    // Log password recovery
+    
     await prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -218,6 +214,7 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
 
 
 

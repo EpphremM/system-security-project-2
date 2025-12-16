@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check access - only SUPER_ADMIN and ADMIN can list all users
+    
     const accessCheck = await checkAccess(request, {
       resourceType: "user",
       action: "read",
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role") || "";
     const department = searchParams.get("department") || "";
 
-    // Build where clause
+    
     const where: any = {};
     
     if (search) {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       where.department = { contains: department, mode: "insensitive" };
     }
 
-    // Get users with pagination
+    
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,

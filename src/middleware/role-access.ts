@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { canAccessRoute, type Role } from "@/lib/auth/roles";
 
-/**
- * Middleware to check if user has access to a route based on their role
- */
+
 export async function checkRoleAccess(
   request: NextRequest,
   route: string

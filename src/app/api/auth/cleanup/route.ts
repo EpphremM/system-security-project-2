@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { cleanupUnverifiedUsers, cleanupExpiredTokens } from "@/lib/utils/verification";
 
-/**
- * Cleanup job for unverified users and expired tokens
- * Should be called by a cron job or scheduled task
- */
+
 export async function POST(request: Request) {
   try {
-    // Verify authorization (in production, use proper API key)
+    
     const authHeader = request.headers.get("authorization");
     if (authHeader !== `Bearer ${process.env.CLEANUP_API_KEY}`) {
       return NextResponse.json(
@@ -36,6 +33,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
 
 

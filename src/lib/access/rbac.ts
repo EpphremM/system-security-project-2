@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-/**
- * Predefined system roles with hierarchy
- */
+
 export const PREDEFINED_ROLES = {
   SUPER_ADMIN: {
     name: "SUPER_ADMIN",
@@ -54,16 +52,14 @@ export const PREDEFINED_ROLES = {
   },
 } as const;
 
-/**
- * Initialize predefined roles
- */
+
 export async function initializePredefinedRoles() {
   const roles = Object.values(PREDEFINED_ROLES);
   
   for (const roleData of roles) {
     const { parent, ...data } = roleData;
     
-    // Find parent role if specified
+    
     let parentId: string | undefined;
     if (parent) {
       const parentRole = await prisma.role.findUnique({
@@ -74,7 +70,7 @@ export async function initializePredefinedRoles() {
       }
     }
     
-    // Create or update role
+    
     await prisma.role.upsert({
       where: { name: roleData.name },
       create: {
@@ -91,9 +87,7 @@ export async function initializePredefinedRoles() {
   }
 }
 
-/**
- * Get all permissions for a role (including inherited)
- */
+
 export async function getRolePermissions(roleId: string): Promise<{
   direct: any[];
   inherited: any[];
@@ -126,16 +120,16 @@ export async function getRolePermissions(roleId: string): Promise<{
   const direct = role.permissions;
   const inherited: any[] = [];
 
-  // Get inherited permissions from parent
+  
   if (role.parent) {
     const parentPermissions = await getRolePermissions(role.parent.id);
     inherited.push(...parentPermissions.all);
   }
 
-  // Combine and deduplicate
+  
   const allPermissions = new Map();
   
-  // Add inherited first (lower priority)
+  
   inherited.forEach((perm) => {
     allPermissions.set(perm.permissionId, {
       ...perm,
@@ -143,7 +137,7 @@ export async function getRolePermissions(roleId: string): Promise<{
     });
   });
 
-  // Add direct permissions (higher priority, override inherited)
+  
   direct.forEach((perm) => {
     allPermissions.set(perm.permissionId, {
       ...perm,
@@ -158,9 +152,7 @@ export async function getRolePermissions(roleId: string): Promise<{
   };
 }
 
-/**
- * Get all permissions for a user (from all roles)
- */
+
 export async function getUserPermissions(userId: string): Promise<{
   rolePermissions: any[];
   directPermissions: any[];
@@ -219,22 +211,22 @@ export async function getUserPermissions(userId: string): Promise<{
   const rolePermissions: any[] = [];
   const directPermissions = user.permissions;
 
-  // Get permissions from primary role
+  
   if (user.role) {
     const rolePerms = await getRolePermissions(user.role.id);
     rolePermissions.push(...rolePerms.all);
   }
 
-  // Get permissions from additional role assignments
+  
   for (const assignment of user.roleAssignments) {
     const rolePerms = await getRolePermissions(assignment.roleId);
     rolePermissions.push(...rolePerms.all);
   }
 
-  // Combine and resolve conflicts
+  
   const allPermissions = new Map();
 
-  // Add role permissions first
+  
   rolePermissions.forEach((perm) => {
     const key = `${perm.permission.resource}_${perm.permission.action}`;
     if (!allPermissions.has(key) || !perm.granted) {

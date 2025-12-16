@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    // Check access - only SUPER_ADMIN and ADMIN can view user details
+    
     const accessCheck = await checkAccess(request, {
       resourceType: "user",
       resourceId: params.id,
@@ -97,7 +97,7 @@ export async function PATCH(
       );
     }
 
-    // Check access - only SUPER_ADMIN and ADMIN can edit users
+    
     const accessCheck = await checkAccess(request, {
       resourceType: "user",
       resourceId: params.id,
@@ -128,7 +128,7 @@ export async function PATCH(
       );
     }
 
-    // Get current user to check if email is actually changing
+    
     const currentUser = await prisma.user.findUnique({
       where: { id: params.id },
       select: { email: true },
@@ -141,7 +141,7 @@ export async function PATCH(
       );
     }
 
-    // Only check if email is being changed to a different value
+    
     if (parsed.data.email && parsed.data.email !== currentUser.email) {
       const existingUser = await prisma.user.findFirst({
         where: {
@@ -158,7 +158,7 @@ export async function PATCH(
       }
     }
 
-    // Update user
+    
     const updatedUser = await prisma.user.update({
       where: { id: params.id },
       data: {
@@ -179,7 +179,7 @@ export async function PATCH(
       },
     });
 
-    // Log the change
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
@@ -222,7 +222,7 @@ export async function DELETE(
       );
     }
 
-    // Prevent self-deletion
+    
     if (session.user.id === params.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
@@ -230,7 +230,7 @@ export async function DELETE(
       );
     }
 
-    // Check access - only SUPER_ADMIN can delete users
+    
     const userRole = (session.user.role as string) || "USER";
     if (userRole !== "SUPER_ADMIN") {
       return NextResponse.json(
@@ -239,7 +239,7 @@ export async function DELETE(
       );
     }
 
-    // Check if user exists
+    
     const user = await prisma.user.findUnique({
       where: { id: params.id },
       select: { id: true, email: true },
@@ -252,12 +252,12 @@ export async function DELETE(
       );
     }
 
-    // Delete user
+    
     await prisma.user.delete({
       where: { id: params.id },
     });
 
-    // Log the deletion
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if user has permission to view approvals (SUPER_ADMIN, ADMIN, DEPT_HEAD, SECURITY)
+    
     const accessCheck = await checkAccess(request, {
       resourceType: "visitor_approval",
       action: "read",
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get pending approval requests
+    
     const approvals = await prisma.visitorApprovalRequest.findMany({
       where: {
         status: {
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       take: 100,
     });
 
-    // Format response
+    
     const formattedApprovals = approvals.map((approval) => ({
       id: approval.id,
       visitorId: approval.visitorId,

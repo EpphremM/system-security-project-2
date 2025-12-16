@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    // First, fetch visitor to check ownership
+    
     const visitor = await prisma.visitor.findUnique({
       where: { id: params.id },
       select: {
@@ -34,27 +34,27 @@ export async function GET(
       );
     }
 
-    // Check if user is the host (owner) - they always have access
+    
     const isHost = visitor.hostId === session.user.id;
 
-    // If not the host, check access using unified access control
+    
     if (!isHost) {
       const accessCheck = await checkAccess(request, {
         resourceType: "visitor",
         resourceId: params.id,
         action: "read",
         routePath: "/dashboard/visitors",
-        requiredPermission: "view_all_visits", // Need permission to view others' visitors
+        requiredPermission: "view_all_visits", 
         checkRBAC: true,
-        checkMAC: true,  // Check security clearance
-        checkDAC: true,  // Check ownership/sharing (may fail if no Resource record)
-        checkRuBAC: false, // Optional: enable if you have time rules
-        checkABAC: false, // Optional: enable if you have attribute policies
+        checkMAC: true,  
+        checkDAC: true,  
+        checkRuBAC: false, 
+        checkABAC: false, 
       });
 
       if (!accessCheck.allowed) {
-        // If DAC check failed because resource doesn't exist, still deny
-        // (user is not host and no sharing permissions)
+        
+        
         return accessCheck.response || NextResponse.json(
           { error: "Access Denied", message: "You don't have permission to view this visitor" },
           { status: 403 }
@@ -62,7 +62,7 @@ export async function GET(
       }
     }
 
-    // Fetch visitor with all related data
+    
     const fullVisitor = await prisma.visitor.findUnique({
       where: { id: params.id },
       include: {
@@ -117,7 +117,7 @@ export async function GET(
       );
     }
 
-    // Format response
+    
     return NextResponse.json({
       visitor: {
         id: fullVisitor.id,

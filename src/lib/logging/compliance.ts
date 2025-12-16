@@ -2,9 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { LogCategory, LogType, SecurityLevel } from "@/generated/prisma/enums";
 import { extractClientMetadata } from "@/lib/utils/bot-prevention";
 
-/**
- * Log subject access request (GDPR, etc.)
- */
+
 export async function logSubjectAccessRequest(
   subjectRequestId: string,
   userId: string,
@@ -36,9 +34,7 @@ export async function logSubjectAccessRequest(
   });
 }
 
-/**
- * Log data retention enforcement
- */
+
 export async function logDataRetentionEnforced(
   resource: string,
   resourceId: string,
@@ -65,9 +61,7 @@ export async function logDataRetentionEnforced(
   });
 }
 
-/**
- * Log data deletion due to retention
- */
+
 export async function logDataDeletedRetention(
   resource: string,
   resourceIds: string[],
@@ -92,9 +86,7 @@ export async function logDataDeletedRetention(
   });
 }
 
-/**
- * Log audit export
- */
+
 export async function logAuditExport(
   exportedBy: string,
   exportFormat: "CSV" | "JSON" | "PDF" | "XML",
@@ -132,9 +124,7 @@ export async function logAuditExport(
   return log;
 }
 
-/**
- * Log compliance check
- */
+
 export async function logComplianceCheck(
   checkType: "GDPR" | "HIPAA" | "SOX" | "PCI_DSS" | "CUSTOM",
   checkName: string,
@@ -172,9 +162,7 @@ export async function logComplianceCheck(
   });
 }
 
-/**
- * Log GDPR-specific request
- */
+
 export async function logGDPRRequest(
   requestId: string,
   userId: string,
@@ -208,9 +196,7 @@ export async function logGDPRRequest(
   });
 }
 
-/**
- * Log HIPAA audit event
- */
+
 export async function logHIPAAAudit(
   eventType: string,
   userId: string,
@@ -242,24 +228,22 @@ export async function logHIPAAAudit(
   });
 }
 
-/**
- * Calculate retention date based on compliance requirements
- */
+
 export function calculateRetentionDate(
   complianceTags: string[],
-  defaultRetentionDays: number = 2555 // 7 years default
+  defaultRetentionDays: number = 2555 
 ): Date {
   const retentionDays: Record<string, number> = {
-    GDPR: 2555, // 7 years
-    HIPAA: 2190, // 6 years
-    SOX: 2555, // 7 years
-    PCI_DSS: 1095, // 3 years
-    SECURITY_CLEARANCE: 2555, // 7 years
-    DATA_DELETION: 365, // 1 year
-    AUDIT_EXPORT: 2555, // 7 years
+    GDPR: 2555, 
+    HIPAA: 2190, 
+    SOX: 2555, 
+    PCI_DSS: 1095, 
+    SECURITY_CLEARANCE: 2555, 
+    DATA_DELETION: 365, 
+    AUDIT_EXPORT: 2555, 
   };
 
-  // Use the longest retention period from applicable tags
+  
   let maxRetention = defaultRetentionDays;
   for (const tag of complianceTags) {
     if (retentionDays[tag] && retentionDays[tag] > maxRetention) {

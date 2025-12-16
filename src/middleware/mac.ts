@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { checkReadAccess, checkWriteAccess } from "@/lib/access/mac";
 
-/**
- * MAC middleware to enforce Bell-LaPadula rules
- * Use this middleware in API routes that access classified resources
- */
+
 export async function enforceMAC(
   request: NextRequest,
   resourceType: string,
@@ -27,7 +24,7 @@ export async function enforceMAC(
   }
 
   try {
-    // SUPER_ADMIN bypass: Grant all MAC permissions
+    
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -83,9 +80,7 @@ export async function enforceMAC(
   }
 }
 
-/**
- * Helper to check if user is trusted subject (admin)
- */
+
 export async function isTrustedSubject(userId: string): Promise<boolean> {
   const { getUserClearance } = await import("@/lib/access/mac");
   const clearance = await getUserClearance(userId);

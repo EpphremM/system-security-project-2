@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { planId, test } = parsed.data;
 
     if (test) {
-      // Test recovery plan
+      
       const result = await testRecoveryPlan(planId, session.user.id);
       return NextResponse.json({
         success: result.success,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
           : "Recovery plan test failed",
       });
     } else {
-      // Execute recovery plan
+      
       const executionId = await executeRecoveryPlan(planId, session.user.id);
       return NextResponse.json({
         success: true,

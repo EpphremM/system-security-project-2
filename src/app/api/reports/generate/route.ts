@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const format = searchParams.get("format") as ReportFormat | null;
 
     if (reportId && format) {
-      // Export report
+      
       const exportData = await exportReport(reportId, format);
       return new NextResponse(exportData.content, {
         headers: {

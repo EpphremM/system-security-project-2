@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rotate keys
+    
     const result = await rotateKeys();
 
     return NextResponse.json({

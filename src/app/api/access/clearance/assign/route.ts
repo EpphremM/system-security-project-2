@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is admin or has clearance management permission
-    // For now, check if user is admin (you can add permission check here)
+    
+    
     const body = await request.json();
     const parsed = assignSchema.safeParse(body);
 

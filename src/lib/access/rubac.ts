@@ -1,16 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { RuleType, HolidayType, DeviceType, TrustLevel } from "@/generated/prisma/enums";
 
-/**
- * Time-based rule evaluation
- */
+
 export interface TimeRuleConfig {
   workingHours?: {
-    start: string; // "HH:mm" format, e.g., "08:00"
-    end: string; // "HH:mm" format, e.g., "18:00"
+    start: string; 
+    end: string; 
   };
-  daysOfWeek?: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  timezone?: string; // IANA timezone, e.g., "America/New_York"
+  daysOfWeek?: number[]; 
+  timezone?: string; 
   excludeHolidays?: boolean;
   emergencyOverride?: boolean;
 }
@@ -19,21 +17,21 @@ export function evaluateTimeRule(
   config: TimeRuleConfig,
   currentTime: Date = new Date()
 ): { allowed: boolean; reason?: string } {
-  // Check if rule is valid (validFrom/validUntil)
-  // This would be checked at the rule level, not here
+  
+  
 
-  // Check emergency override
+  
   if (config.emergencyOverride) {
     return { allowed: true };
   }
 
-  // Get current time components
+  
   const hour = currentTime.getHours();
   const minute = currentTime.getMinutes();
   const dayOfWeek = currentTime.getDay();
   const currentTimeMinutes = hour * 60 + minute;
 
-  // Check days of week
+  
   if (config.daysOfWeek && config.daysOfWeek.length > 0) {
     if (!config.daysOfWeek.includes(dayOfWeek)) {
       return {

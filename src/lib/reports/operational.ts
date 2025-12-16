@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ReportType } from "@/generated/prisma/enums";
 
-/**
- * Generate visitor statistics and trends report
- */
+
 export async function generateVisitorStatisticsReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -31,7 +29,7 @@ export async function generateVisitorStatisticsReport(options?: {
     },
   });
 
-  // Group by date
+  
   const byDate: Record<string, number> = {};
   const byDepartment: Record<string, number> = {};
   const byPurpose: Record<string, number> = {};
@@ -52,7 +50,7 @@ export async function generateVisitorStatisticsReport(options?: {
     if (visitor.actualCheckOut) checkedOut++;
   }
 
-  // Calculate trends
+  
   const dates = Object.keys(byDate).sort();
   const trends = dates.map((date) => ({
     date,
@@ -88,9 +86,7 @@ export async function generateVisitorStatisticsReport(options?: {
   };
 }
 
-/**
- * Generate system performance report
- */
+
 export async function generateSystemPerformanceReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -113,7 +109,7 @@ export async function generateSystemPerformanceReport(options?: {
     };
   }
 
-  // Calculate averages
+  
   const cpuValues = healthRecords
     .map((r) => r.cpuUsage)
     .filter((v) => v !== null) as number[];
@@ -144,13 +140,13 @@ export async function generateSystemPerformanceReport(options?: {
       ? latencyValues.reduce((a, b) => a + b, 0) / latencyValues.length
       : 0;
 
-  // Get status distribution
+  
   const byStatus: Record<string, number> = {};
   for (const record of healthRecords) {
     byStatus[record.status] = (byStatus[record.status] || 0) + 1;
   }
 
-  // Get uptime (assuming healthy = uptime)
+  
   const healthyCount = healthRecords.filter((r) => r.status === "HEALTHY").length;
   const uptimePercentage = (healthyCount / healthRecords.length) * 100;
 
@@ -198,9 +194,7 @@ export async function generateSystemPerformanceReport(options?: {
   };
 }
 
-/**
- * Generate backup success report
- */
+
 export async function generateBackupSuccessReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -220,7 +214,7 @@ export async function generateBackupSuccessReport(options?: {
     orderBy: { startedAt: "desc" },
   });
 
-  // Group by type
+  
   const byType: Record<string, any> = {};
   const byStatus: Record<string, number> = {};
   const byStorageLocation: Record<string, number> = {};
@@ -230,7 +224,7 @@ export async function generateBackupSuccessReport(options?: {
   let failed = 0;
 
   for (const backup of backups) {
-    // By type
+    
     if (!byType[backup.backupType]) {
       byType[backup.backupType] = {
         total: 0,
@@ -252,15 +246,15 @@ export async function generateBackupSuccessReport(options?: {
       totalSize += Number(backup.size);
     }
 
-    // By status
+    
     byStatus[backup.status] = (byStatus[backup.status] || 0) + 1;
 
-    // By storage location
+    
     byStorageLocation[backup.storageLocation] =
       (byStorageLocation[backup.storageLocation] || 0) + 1;
   }
 
-  // Calculate success rate
+  
   const successRate =
     backups.length > 0 ? (successful / backups.length) * 100 : 0;
 
@@ -300,9 +294,7 @@ export async function generateBackupSuccessReport(options?: {
   };
 }
 
-/**
- * Generate user activity summary report
- */
+
 export async function generateUserActivitySummaryReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -328,12 +320,12 @@ export async function generateUserActivitySummaryReport(options?: {
     },
   });
 
-  // Filter by department if specified
+  
   const filteredLogs = options?.department
     ? activityLogs.filter((log) => log.user?.department === options.department)
     : activityLogs;
 
-  // Group by user
+  
   const byUser: Record<string, any> = {};
   const byAction: Record<string, number> = {};
   const byResource: Record<string, number> = {};
@@ -365,7 +357,7 @@ export async function generateUserActivitySummaryReport(options?: {
     byResource[log.resource] = (byResource[log.resource] || 0) + 1;
   }
 
-  // Get top active users
+  
   const topUsers = Object.values(byUser)
     .sort((a: any, b: any) => b.totalActivities - a.totalActivities)
     .slice(0, 20);

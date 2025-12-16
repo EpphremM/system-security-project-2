@@ -28,13 +28,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate new backup codes
+    
     const backupCodes = await generateBackupCodes();
     const hashedBackupCodes = await Promise.all(
       backupCodes.map((code) => hashBackupCode(code))
     );
 
-    // Delete old unused backup codes
+    
     await prisma.mFABackupCode.deleteMany({
       where: {
         userId: session.user.id,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Store new backup codes
+    
     await prisma.mFABackupCode.createMany({
       data: hashedBackupCodes.map((hashedCode) => ({
         userId: session.user.id,
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       })),
     });
 
-    // Log audit event
+    
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      backupCodes, // Return plain codes only once - user must save them
+      backupCodes, 
       message: "Backup codes generated successfully",
     });
   } catch (error) {
@@ -75,9 +75,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get remaining unused backup codes count
- */
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

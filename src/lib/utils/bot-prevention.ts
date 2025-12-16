@@ -5,31 +5,29 @@ export interface SubmissionMetadata {
   ipAddress: string;
   userAgent: string;
   timestamp: number;
-  formFillTime?: number; // Time taken to fill form (ms)
+  formFillTime?: number; 
   mouseMovements?: number;
   keystrokes?: number;
   deviceFingerprint?: string;
 }
 
 export interface BehavioralScore {
-  score: number; // 0-100, higher = more suspicious
+  score: number; 
   reasons: string[];
 }
 
-/**
- * Calculate behavioral score based on submission metadata
- */
+
 export function calculateBehavioralScore(metadata: SubmissionMetadata): BehavioralScore {
   const reasons: string[] = [];
   let score = 0;
 
-  // Check form fill time (too fast = bot)
+  
   if (metadata.formFillTime && metadata.formFillTime < 2000) {
     score += 30;
     reasons.push("Form filled too quickly");
   }
 
-  // Check for missing behavioral data
+  
   if (!metadata.mouseMovements || metadata.mouseMovements < 5) {
     score += 20;
     reasons.push("Insufficient mouse movements");
@@ -40,7 +38,7 @@ export function calculateBehavioralScore(metadata: SubmissionMetadata): Behavior
     reasons.push("Insufficient keystrokes");
   }
 
-  // Check user agent (suspicious patterns)
+  
   if (metadata.userAgent) {
     const suspiciousPatterns = [
       /bot/i,
@@ -56,7 +54,7 @@ export function calculateBehavioralScore(metadata: SubmissionMetadata): Behavior
     }
   }
 
-  // Check for missing device fingerprint
+  
   if (!metadata.deviceFingerprint) {
     score += 10;
     reasons.push("Missing device fingerprint");
@@ -68,16 +66,12 @@ export function calculateBehavioralScore(metadata: SubmissionMetadata): Behavior
   };
 }
 
-/**
- * Check if submission should be blocked based on behavioral score
- */
+
 export function shouldBlockSubmission(score: BehavioralScore): boolean {
-  return score.score >= 70; // Block if score >= 70
+  return score.score >= 70; 
 }
 
-/**
- * Rate limit check for registration
- */
+
 export async function checkRegistrationRateLimit(
   ipAddress: string
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
@@ -90,9 +84,7 @@ export async function checkRegistrationRateLimit(
   }
 }
 
-/**
- * Extract client metadata from request
- */
+
 export function extractClientMetadata(request: NextRequest): SubmissionMetadata {
   const ipAddress =
     request.ip ??
@@ -109,9 +101,7 @@ export function extractClientMetadata(request: NextRequest): SubmissionMetadata 
   };
 }
 
-/**
- * Generate device fingerprint from request headers
- */
+
 export function generateDeviceFingerprint(request: NextRequest): string {
   const headers = {
     "user-agent": request.headers.get("user-agent") ?? "",
@@ -119,20 +109,18 @@ export function generateDeviceFingerprint(request: NextRequest): string {
     "accept-encoding": request.headers.get("accept-encoding") ?? "",
   };
 
-  // Simple fingerprint (in production, use a proper library)
+  
   const fingerprint = JSON.stringify(headers);
   return Buffer.from(fingerprint).toString("base64").substring(0, 32);
 }
 
-/**
- * Calculate time-based delay to prevent rapid submissions
- */
+
 export function calculateSubmissionDelay(
   firstSubmissionTime: number,
   currentTime: number
 ): number {
   const elapsed = currentTime - firstSubmissionTime;
-  const minDelay = 3000; // Minimum 3 seconds
+  const minDelay = 3000; 
 
   if (elapsed < minDelay) {
     return minDelay - elapsed;
@@ -140,6 +128,7 @@ export function calculateSubmissionDelay(
 
   return 0;
 }
+
 
 
 

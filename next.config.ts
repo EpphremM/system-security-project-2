@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // TLS Configuration
-  // Enforce TLS 1.3 (handled by server/proxy)
-  // Strong cipher suites (handled by server/proxy)
   
-  // Security headers (also in middleware)
+  
+  
+  
+  
   async headers() {
     return [
       {

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const { category, timeWindow, startDate, endDate } = parsed.data;
 
     if (startDate && endDate) {
-      // Get statistics
+      
       const stats = await getLogStatistics(
         new Date(startDate),
         new Date(endDate),
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
       return NextResponse.json(stats);
     } else {
-      // Real-time aggregation
+      
       const aggregation = await aggregateLogs(category, timeWindow);
       return NextResponse.json(aggregation);
     }

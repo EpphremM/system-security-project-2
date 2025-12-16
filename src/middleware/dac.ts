@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission as checkDACPermission } from "@/lib/access/dac";
 
-/**
- * DAC middleware to enforce discretionary access control
- * Checks resource ownership and shared permissions
- */
+
 export async function enforceDAC(
   request: NextRequest,
   resourceType: string,
@@ -25,7 +22,7 @@ export async function enforceDAC(
   }
 
   try {
-    // SUPER_ADMIN bypass: Grant all DAC permissions
+    
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { legacyRole: true },
@@ -35,7 +32,7 @@ export async function enforceDAC(
       return { allowed: true };
     }
 
-    // Special handling for visitors: check if user is the host (owner)
+    
     if (resourceType === "visitor") {
       const { prisma } = await import("@/lib/prisma");
       const visitor = await prisma.visitor.findUnique({
@@ -44,14 +41,14 @@ export async function enforceDAC(
       });
 
       if (visitor) {
-        // If user is the host, they own the visitor resource
+        
         if (visitor.hostId === session.user.id) {
           return { allowed: true };
         }
       }
     }
 
-    // Map action to DAC permission type
+    
     const permissionMap: Record<string, "read" | "write" | "execute" | "delete" | "share"> = {
       read: "read",
       view: "read",
@@ -69,7 +66,7 @@ export async function enforceDAC(
 
     const permission = permissionMap[action.toLowerCase()] || "read";
 
-    // Check DAC permission
+    
     const result = await checkDACPermission(
       session.user.id,
       resourceType,
@@ -78,7 +75,7 @@ export async function enforceDAC(
     );
 
     if (!result.allowed) {
-      // For visitors, if Resource doesn't exist and user is not host, deny access
+      
       if (resourceType === "visitor" && result.reason === "Resource not found") {
         return {
           allowed: false,

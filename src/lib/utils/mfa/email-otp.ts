@@ -4,32 +4,26 @@ import { sendEmail } from "@/lib/utils/email";
 import { prisma } from "@/lib/prisma";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-// Rate limiter for email OTP (max 3 per 5 minutes per user)
+
 const emailOTPRateLimiter = new RateLimiterMemory({
   points: 3,
-  duration: 300, // 5 minutes
-  blockDuration: 600, // Block for 10 minutes if limit exceeded
+  duration: 300, 
+  blockDuration: 600, 
 });
 
-/**
- * Generate a 6-digit OTP code
- */
+
 export function generateEmailOTPCode(): string {
-  // Generate a random 6-digit code
+  
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   return code;
 }
 
-/**
- * Hash OTP code for storage
- */
+
 export async function hashEmailOTPCode(code: string): Promise<string> {
   return hash(code);
 }
 
-/**
- * Verify OTP code against hashed code
- */
+
 export async function verifyEmailOTPCode(
   code: string,
   hashedCode: string
@@ -38,30 +32,28 @@ export async function verifyEmailOTPCode(
   return hashedInput === hashedCode;
 }
 
-/**
- * Send email OTP to user
- */
+
 export async function sendEmailOTP(
   userId: string,
   email: string,
   name?: string,
   ipAddress?: string
 ): Promise<string> {
-  // Check rate limit
+  
   try {
     await emailOTPRateLimiter.consume(userId);
   } catch (error) {
     throw new Error("Too many OTP requests. Please try again later.");
   }
 
-  // Generate OTP code
+  
   const code = generateEmailOTPCode();
   const hashedCode = await hashEmailOTPCode(code);
 
-  // Expires in 5 minutes
+  
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  // Store OTP in database
+  
   await prisma.mFAEmailOTP.create({
     data: {
       userId,
@@ -71,7 +63,7 @@ export async function sendEmailOTP(
     },
   });
 
-  // Send email
+  
   await sendEmail(
     email,
     "Your Verification Code",

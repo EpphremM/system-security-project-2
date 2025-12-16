@@ -87,7 +87,7 @@ export function IncidentManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      
       <div className="grid gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -130,7 +130,7 @@ export function IncidentManagement() {
         </Card>
       </div>
 
-      {/* Distribution */}
+      
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -181,7 +181,7 @@ export function IncidentManagement() {
         </Card>
       </div>
 
-      {/* Recent Incidents */}
+      
       <Card>
         <CardHeader>
           <CardTitle>Recent Incidents</CardTitle>

@@ -3,16 +3,12 @@ import { randomBytes } from "crypto";
 import { hash } from "@/lib/utils/crypto";
 import { hasPermission, isResourceOwner } from "./dac";
 
-/**
- * Generate unique sharing link token
- */
+
 export function generateSharingToken(): string {
   return randomBytes(32).toString("base64url");
 }
 
-/**
- * Create sharing link for resource
- */
+
 export async function createSharingLink(
   resourceType: string,
   resourceId: string,
@@ -33,7 +29,7 @@ export async function createSharingLink(
     description?: string;
   }
 ) {
-  // Verify creator has share permission or is owner
+  
   const canShare = await hasPermission(createdBy, resourceType, resourceId, "share");
   const isOwner = await isResourceOwner(createdBy, resourceType, resourceId);
 
@@ -41,7 +37,7 @@ export async function createSharingLink(
     throw new Error("You do not have permission to share this resource");
   }
 
-  // Get or create resource
+  
   let resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -55,13 +51,13 @@ export async function createSharingLink(
     throw new Error("Resource not found");
   }
 
-  // Generate token
+  
   const token = generateSharingToken();
 
-  // Hash password if provided
+  
   const hashedPassword = options.password ? await hash(options.password) : null;
 
-  // Create sharing link
+  
   const sharingLink = await prisma.sharingLink.create({
     data: {
       resourceId: resource.id,
@@ -83,7 +79,7 @@ export async function createSharingLink(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: createdBy,
@@ -93,20 +89,18 @@ export async function createSharingLink(
       securityLabel: "INTERNAL",
       details: {
         linkId: sharingLink.id,
-        token: token.substring(0, 8) + "...", // Partial token for logging
+        token: token.substring(0, 8) + "...", 
       },
     },
   });
 
   return {
     ...sharingLink,
-    token, // Return full token (only shown once)
+    token, 
   };
 }
 
-/**
- * Verify sharing link access
- */
+
 export async function verifySharingLink(
   token: string,
   password?: string,
@@ -127,17 +121,17 @@ export async function verifySharingLink(
     return { allowed: false, reason: "Invalid sharing link" };
   }
 
-  // Check expiration
+  
   if (link.expiresAt && link.expiresAt < new Date()) {
     return { allowed: false, reason: "Sharing link has expired" };
   }
 
-  // Check max uses
+  
   if (link.maxUses && link.useCount >= link.maxUses) {
     return { allowed: false, reason: "Sharing link has reached maximum uses" };
   }
 
-  // Check password
+  
   if (link.password) {
     if (!password) {
       return { allowed: false, reason: "Password required" };
@@ -148,14 +142,14 @@ export async function verifySharingLink(
     }
   }
 
-  // Check email restrictions
+  
   if (link.allowedEmails.length > 0) {
     if (!userEmail || !link.allowedEmails.includes(userEmail)) {
       return { allowed: false, reason: "Email not allowed" };
     }
   }
 
-  // Check domain restrictions
+  
   if (link.allowedDomains.length > 0 && userEmail) {
     const domain = userEmail.split("@")[1];
     if (!domain || !link.allowedDomains.includes(domain)) {
@@ -163,7 +157,7 @@ export async function verifySharingLink(
     }
   }
 
-  // Check authentication requirement
+  
   if (link.requireAuth && !userEmail) {
     return { allowed: false, reason: "Authentication required" };
   }
@@ -171,9 +165,7 @@ export async function verifySharingLink(
   return { allowed: true, link };
 }
 
-/**
- * Use sharing link (increment use count)
- */
+
 export async function useSharingLink(token: string) {
   const link = await prisma.sharingLink.findUnique({
     where: { token },
@@ -183,7 +175,7 @@ export async function useSharingLink(token: string) {
     throw new Error("Sharing link not found");
   }
 
-  // Update use count and last used
+  
   return await prisma.sharingLink.update({
     where: { token },
     data: {
@@ -195,9 +187,7 @@ export async function useSharingLink(token: string) {
   });
 }
 
-/**
- * Revoke sharing link
- */
+
 export async function revokeSharingLink(
   linkId: string,
   revokedBy: string
@@ -213,7 +203,7 @@ export async function revokeSharingLink(
     throw new Error("Sharing link not found");
   }
 
-  // Verify revoker has permission
+  
   const canShare = await hasPermission(
     revokedBy,
     link.resource.type,
@@ -234,7 +224,7 @@ export async function revokeSharingLink(
     where: { id: linkId },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: revokedBy,
@@ -249,15 +239,13 @@ export async function revokeSharingLink(
   });
 }
 
-/**
- * Get all sharing links for a resource
- */
+
 export async function getResourceSharingLinks(
   resourceType: string,
   resourceId: string,
   userId: string
 ) {
-  // Verify user has permission
+  
   const canShare = await hasPermission(userId, resourceType, resourceId, "share");
   const isOwner = await isResourceOwner(userId, resourceType, resourceId);
 

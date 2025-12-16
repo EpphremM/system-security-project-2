@@ -16,9 +16,7 @@ interface SecurityLogOptions {
   request?: Request;
 }
 
-/**
- * Log authentication success
- */
+
 export async function logAuthSuccess(
   userId: string,
   authMethod: string,
@@ -46,9 +44,7 @@ export async function logAuthSuccess(
   });
 }
 
-/**
- * Log authentication failure
- */
+
 export async function logAuthFailure(
   email: string,
   reason: string,
@@ -77,9 +73,7 @@ export async function logAuthFailure(
   });
 }
 
-/**
- * Log account lockout
- */
+
 export async function logAuthLockout(
   userId: string,
   reason: string,
@@ -108,9 +102,7 @@ export async function logAuthLockout(
   });
 }
 
-/**
- * Log MFA success
- */
+
 export async function logMFASuccess(
   userId: string,
   mfaMethod: string,
@@ -138,9 +130,7 @@ export async function logMFASuccess(
   });
 }
 
-/**
- * Log MFA failure
- */
+
 export async function logMFAFailure(
   userId: string,
   mfaMethod: string,
@@ -171,9 +161,7 @@ export async function logMFAFailure(
   });
 }
 
-/**
- * Log access control decision
- */
+
 export async function logAccessDecision(options: SecurityLogOptions) {
   const metadata = options.request ? extractClientMetadata(options.request) : {};
 
@@ -198,9 +186,7 @@ export async function logAccessDecision(options: SecurityLogOptions) {
   });
 }
 
-/**
- * Log policy violation
- */
+
 export async function logPolicyViolation(
   userId: string,
   policyId: string,
@@ -237,9 +223,7 @@ export async function logPolicyViolation(
   });
 }
 
-/**
- * Log security configuration change
- */
+
 export async function logSecurityConfigChange(
   userId: string,
   configKey: string,
@@ -271,9 +255,7 @@ export async function logSecurityConfigChange(
   });
 }
 
-/**
- * Log clearance change
- */
+
 export async function logClearanceChange(
   userId: string,
   changedBy: string,
@@ -315,9 +297,7 @@ export async function logClearanceChange(
   });
 }
 
-/**
- * Log permission change
- */
+
 export async function logPermissionChange(
   userId: string,
   changedBy: string,

@@ -3,9 +3,7 @@ import { rateLimit, authenticateAPIKey, checkAPIVersion } from "@/lib/security/a
 import { validateStringInput, validateFileUpload } from "@/lib/security/input-validation";
 import { encodeHTML, filterLogOutput } from "@/lib/security/output-encoding";
 
-/**
- * Comprehensive security middleware
- */
+
 export async function securityMiddleware(
   request: NextRequest,
   options?: {
@@ -25,7 +23,7 @@ export async function securityMiddleware(
 }> {
   const metadata: any = {};
 
-  // Rate limiting
+  
   if (options?.rateLimitEndpoint) {
     const rateLimitResult = await rateLimit(request, options.rateLimitEndpoint);
     if (!rateLimitResult.allowed) {
@@ -36,7 +34,7 @@ export async function securityMiddleware(
     }
   }
 
-  // API key authentication
+  
   if (options?.requireAPIKey) {
     const apiKeyResult = await authenticateAPIKey(request);
     if (!apiKeyResult.authenticated) {
@@ -49,7 +47,7 @@ export async function securityMiddleware(
     metadata.permissions = apiKeyResult.permissions;
   }
 
-  // API versioning
+  
   if (options?.minAPIVersion || options?.maxAPIVersion) {
     const versionResult = checkAPIVersion(
       request,
@@ -65,7 +63,7 @@ export async function securityMiddleware(
     metadata.apiVersion = versionResult.version;
   }
 
-  // Input validation for POST/PUT requests
+  
   if (options?.validateInput && (request.method === "POST" || request.method === "PUT")) {
     try {
       const body = await request.clone().json();
@@ -83,14 +81,14 @@ export async function securityMiddleware(
         };
       }
     } catch (error) {
-      // If body is not JSON, skip validation
+      
     }
   }
 
-  // File upload validation
+  
   if (request.method === "POST" && request.headers.get("content-type")?.includes("multipart/form-data")) {
-    // File validation would be done in the route handler
-    // This is just a placeholder
+    
+    
   }
 
   return {
@@ -99,9 +97,7 @@ export async function securityMiddleware(
   };
 }
 
-/**
- * Validate request body
- */
+
 function validateRequestBody(body: any): {
   valid: boolean;
   errors?: string[];

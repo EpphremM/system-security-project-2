@@ -19,7 +19,7 @@ export default function VerifyMFAPage() {
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    // Get stored credentials and methods
+    
     const storedEmail = sessionStorage.getItem("mfa_email");
     const storedPassword = sessionStorage.getItem("mfa_password");
     const storedUserId = sessionStorage.getItem("mfa_userId");
@@ -70,13 +70,13 @@ export default function VerifyMFAPage() {
         return;
       }
 
-      // Clear stored credentials
+      
       sessionStorage.removeItem("mfa_email");
       sessionStorage.removeItem("mfa_password");
       sessionStorage.removeItem("mfa_userId");
       sessionStorage.removeItem("mfa_methods");
 
-      // Redirect to dashboard
+      
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -200,7 +200,7 @@ export default function VerifyMFAPage() {
                 type="button"
                 onClick={async () => {
                   try {
-                    // Get WebAuthn options
+                    
                     const optionsResponse = await fetch(
                       `/api/auth/mfa/verify?userId=${userId}`
                     );

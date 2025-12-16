@@ -21,7 +21,7 @@ export default function MFASetupPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Fetch TOTP setup on mount
+    
     fetchTOTPSetup();
   }, []);
 
@@ -73,7 +73,7 @@ export default function MFASetupPage() {
         return;
       }
 
-      // Get backup codes
+      
       const backupResponse = await fetch("/api/auth/mfa/backup-codes", {
         method: "GET",
       });
@@ -83,7 +83,7 @@ export default function MFASetupPage() {
         setBackupCodes(backupResult.codes || []);
       }
 
-      // MFA setup complete
+      
       router.push("/dashboard");
     } catch (err) {
       console.error("MFA verification error:", err);

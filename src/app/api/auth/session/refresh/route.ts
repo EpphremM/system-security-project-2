@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Session refresh is handled by NextAuth automatically
-    // This endpoint just confirms the session is valid
+    
+    
     return NextResponse.json({
       success: true,
       message: "Session refreshed",

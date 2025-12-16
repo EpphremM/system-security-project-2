@@ -8,16 +8,14 @@ import {
 import { getLogStatistics } from "@/lib/logging/aggregation";
 import { getRecentAnomalies } from "@/lib/logging/anomaly-detection";
 
-/**
- * Generate daily security summary
- */
+
 export async function generateDailySecuritySummary(): Promise<any> {
   const now = new Date();
   const startDate = new Date(now);
   startDate.setHours(0, 0, 0, 0);
   const endDate = new Date(now);
 
-  // Get statistics
+  
   const securityStats = await getLogStatistics(startDate, endDate, "SECURITY");
   const userActivityStats = await getLogStatistics(
     startDate,
@@ -25,10 +23,10 @@ export async function generateDailySecuritySummary(): Promise<any> {
     "USER_ACTIVITY"
   );
 
-  // Get anomalies
+  
   const anomalies = await getRecentAnomalies(50);
 
-  // Get failed logins
+  
   const { prisma: prismaClient } = await import("@/lib/prisma");
   const failedLogins = await prismaClient.auditLog.count({
     where: {
@@ -40,7 +38,7 @@ export async function generateDailySecuritySummary(): Promise<any> {
     },
   });
 
-  // Get access denials
+  
   const accessDenials = await prismaClient.auditLog.count({
     where: {
       accessGranted: false,
@@ -64,27 +62,25 @@ export async function generateDailySecuritySummary(): Promise<any> {
       security: securityStats,
       userActivity: userActivityStats,
     },
-    anomalies: anomalies.slice(0, 10), // Top 10
+    anomalies: anomalies.slice(0, 10), 
   };
 }
 
-/**
- * Generate weekly compliance report
- */
+
 export async function generateWeeklyComplianceReport(): Promise<any> {
   const now = new Date();
   const startDate = new Date(now);
   startDate.setDate(startDate.getDate() - 7);
   const endDate = new Date(now);
 
-  // Get compliance statistics
+  
   const complianceStats = await getLogStatistics(
     startDate,
     endDate,
     "COMPLIANCE"
   );
 
-  // Get compliance-related logs
+  
   const { prisma: prismaClient } = await import("@/lib/prisma");
   const gdprRequests = await prismaClient.auditLog.count({
     where: {
@@ -131,16 +127,14 @@ export async function generateWeeklyComplianceReport(): Promise<any> {
   };
 }
 
-/**
- * Generate monthly audit review
- */
+
 export async function generateMonthlyAuditReview(): Promise<any> {
   const now = new Date();
   const startDate = new Date(now);
   startDate.setMonth(startDate.getMonth() - 1);
   const endDate = new Date(now);
 
-  // Get all statistics
+  
   const securityStats = await getLogStatistics(startDate, endDate, "SECURITY");
   const userActivityStats = await getLogStatistics(
     startDate,
@@ -154,7 +148,7 @@ export async function generateMonthlyAuditReview(): Promise<any> {
     "COMPLIANCE"
   );
 
-  // Get tampered logs
+  
   const { prisma: prismaClient } = await import("@/lib/prisma");
   const tamperedLogs = await prismaClient.auditLog.count({
     where: {
@@ -190,16 +184,14 @@ export async function generateMonthlyAuditReview(): Promise<any> {
   };
 }
 
-/**
- * Generate quarterly risk assessment
- */
+
 export async function generateQuarterlyRiskAssessment(): Promise<any> {
   const now = new Date();
   const startDate = new Date(now);
   startDate.setMonth(startDate.getMonth() - 3);
   const endDate = new Date(now);
 
-  // Get all statistics
+  
   const securityStats = await getLogStatistics(startDate, endDate, "SECURITY");
   const userActivityStats = await getLogStatistics(
     startDate,
@@ -213,10 +205,10 @@ export async function generateQuarterlyRiskAssessment(): Promise<any> {
     "COMPLIANCE"
   );
 
-  // Get all anomalies
+  
   const anomalies = await getRecentAnomalies(1000);
 
-  // Calculate risk score
+  
   const riskScore = calculateRiskScore(
     securityStats,
     userActivityStats,
@@ -252,9 +244,7 @@ export async function generateQuarterlyRiskAssessment(): Promise<any> {
   };
 }
 
-/**
- * Calculate risk score (0-100)
- */
+
 function calculateRiskScore(
   securityStats: any,
   userActivityStats: any,
@@ -264,21 +254,21 @@ function calculateRiskScore(
 ): number {
   let score = 0;
 
-  // Access denials (higher = more risk)
+  
   score += Math.min(securityStats.accessDenied / 10, 20);
 
-  // Tampered logs (critical)
+  
   score += securityStats.tamperedLogs * 10;
 
-  // Critical anomalies
+  
   const criticalAnomalies = anomalies.filter((a: any) => a.severity === "CRITICAL");
   score += criticalAnomalies.length * 5;
 
-  // High anomalies
+  
   const highAnomalies = anomalies.filter((a: any) => a.severity === "HIGH");
   score += highAnomalies.length * 2;
 
-  // Performance issues
+  
   if (systemStats.averageResponseTime > 5000) {
     score += 10;
   }
@@ -286,9 +276,7 @@ function calculateRiskScore(
   return Math.min(score, 100);
 }
 
-/**
- * Get risk level from score
- */
+
 function getRiskLevel(score: number): string {
   if (score >= 80) return "CRITICAL";
   if (score >= 60) return "HIGH";
@@ -297,9 +285,7 @@ function getRiskLevel(score: number): string {
   return "MINIMAL";
 }
 
-/**
- * Generate recommendations
- */
+
 function generateRecommendations(riskScore: number, anomalies: any[]): string[] {
   const recommendations: string[] = [];
 

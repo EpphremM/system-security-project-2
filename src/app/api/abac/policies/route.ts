@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { resourceId, resourceType, ...policy } = body;
 
-    // Save ABAC policy to database
-    // This would typically be stored in an ABACPolicy table
+    
+    
     return NextResponse.json({
       success: true,
       message: "Policy saved successfully",

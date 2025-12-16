@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { siemId, logIds } = parsed.data;
 
     if (siemId) {
-      // Sync specific SIEM
+      
       const result = await syncToSIEM(siemId, logIds);
       return NextResponse.json({
         success: result.success,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         failed: result.failed,
       });
     } else {
-      // Auto-sync all
+      
       const result = await autoSyncSIEM();
       return NextResponse.json({
         success: true,

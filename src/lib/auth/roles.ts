@@ -1,6 +1,4 @@
-/**
- * Role definitions and permissions
- */
+
 
 export type Role = 
   | "VISITOR"
@@ -10,9 +8,9 @@ export type Role =
   | "SECURITY"
   | "IT_ADMIN"
   | "SUPER_ADMIN"
-  | "USER" // Default role
-  | "ADMIN" // Legacy admin role
-  | "RECEPTIONIST"; // Legacy receptionist role
+  | "USER" 
+  | "ADMIN" 
+  | "RECEPTIONIST"; 
 
 export const ROLE_HIERARCHY: Record<Role, number> = {
   VISITOR: 1,
@@ -65,7 +63,7 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     "manage_settings",
   ],
   SUPER_ADMIN: [
-    "*", // All permissions
+    "*", 
   ],
 };
 
@@ -75,14 +73,14 @@ export function hasPermission(userRole: Role, permission: string): boolean {
 }
 
 export function canAccessRoute(userRole: Role, route: string): boolean {
-  // SUPER_ADMIN can access all routes
+  
   if (userRole === "SUPER_ADMIN") {
     return true;
   }
 
-  // Define route access by role
+  
   const routePermissions: Record<string, Role[]> = {
-    "/dashboard": ["*"], // All roles
+    "/dashboard": ["*"], 
     "/dashboard/visitors": ["*"],
     "/dashboard/visitors/approvals": ["ADMIN", "SUPER_ADMIN", "DEPT_HEAD", "SECURITY"],
     "/dashboard/checkin": ["RECEPTIONIST", "SECURITY", "ADMIN", "SUPER_ADMIN", "IT_ADMIN"],

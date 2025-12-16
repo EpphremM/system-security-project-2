@@ -4,9 +4,7 @@ import * as complianceReports from "./compliance";
 import * as securityReports from "./security";
 import * as operationalReports from "./operational";
 
-/**
- * Generate report based on type
- */
+
 export async function generateReport(
   reportType: ReportType,
   options?: {
@@ -16,7 +14,7 @@ export async function generateReport(
   }
 ): Promise<any> {
   switch (reportType) {
-    // Compliance Reports
+    
     case "ACCESS_CONTROL_REVIEW":
       return await complianceReports.generateAccessControlReviewReport(options);
     case "USER_PERMISSION":
@@ -26,7 +24,7 @@ export async function generateReport(
     case "POLICY_COMPLIANCE":
       return await complianceReports.generatePolicyComplianceReport(options);
 
-    // Security Reports
+    
     case "THREAT_INTELLIGENCE":
       return await securityReports.generateThreatIntelligenceReport(options);
     case "VULNERABILITY_ASSESSMENT":
@@ -36,7 +34,7 @@ export async function generateReport(
     case "RISK_ASSESSMENT":
       return await securityReports.generateRiskAssessmentReport(options);
 
-    // Operational Reports
+    
     case "VISITOR_STATISTICS":
       return await operationalReports.generateVisitorStatisticsReport(options);
     case "SYSTEM_PERFORMANCE":

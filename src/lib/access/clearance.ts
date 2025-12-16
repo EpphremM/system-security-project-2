@@ -2,9 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { SecurityLevel, ClearanceStatus, ClearanceChangeType } from "@/generated/prisma/enums";
 import { getSecurityLevelValue } from "./mac";
 
-/**
- * Assign clearance to user
- */
+
 export async function assignClearance(
   userId: string,
   level: SecurityLevel,
@@ -13,11 +11,11 @@ export async function assignClearance(
   reason?: string,
   expiresAt?: Date
 ) {
-  // Calculate next review date (1 year from now)
+  
   const nextReviewAt = new Date();
   nextReviewAt.setFullYear(nextReviewAt.getFullYear() + 1);
 
-  // Get existing clearance if any
+  
   const existingClearance = await prisma.userClearance.findUnique({
     where: { userId },
   });
@@ -25,7 +23,7 @@ export async function assignClearance(
   const previousLevel = existingClearance?.level;
   const previousCompartments = existingClearance?.compartments ?? [];
 
-  // Create or update clearance
+  
   const clearance = await prisma.userClearance.upsert({
     where: { userId },
     create: {
@@ -48,7 +46,7 @@ export async function assignClearance(
     },
   });
 
-  // Record in history
+  
   if (existingClearance) {
     const changeType =
       getSecurityLevelValue(level) > getSecurityLevelValue(previousLevel ?? "PUBLIC")
@@ -82,7 +80,7 @@ export async function assignClearance(
     });
   }
 
-  // Update user's securityClearance for backward compatibility
+  
   await prisma.user.update({
     where: { id: userId },
     data: {
@@ -90,7 +88,7 @@ export async function assignClearance(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: assignedBy,
@@ -110,9 +108,7 @@ export async function assignClearance(
   return clearance;
 }
 
-/**
- * Revoke clearance from user
- */
+
 export async function revokeClearance(
   userId: string,
   revokedBy: string,
@@ -126,7 +122,7 @@ export async function revokeClearance(
     throw new Error("User does not have clearance to revoke");
   }
 
-  // Update clearance status
+  
   const clearance = await prisma.userClearance.update({
     where: { userId },
     data: {
@@ -135,21 +131,21 @@ export async function revokeClearance(
     },
   });
 
-  // Record in history
+  
   await prisma.clearanceHistory.create({
     data: {
       userId,
       previousLevel: existingClearance.level,
-      newLevel: existingClearance.level, // Keep level for history
+      newLevel: existingClearance.level, 
       previousCompartments: existingClearance.compartments,
-      newCompartments: [], // Remove all compartments
+      newCompartments: [], 
       changedBy: revokedBy,
       reason,
       changeType: "REVOKED",
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: revokedBy,
@@ -167,9 +163,7 @@ export async function revokeClearance(
   return clearance;
 }
 
-/**
- * Add compartment to user clearance
- */
+
 export async function addCompartment(
   userId: string,
   compartment: string,
@@ -185,7 +179,7 @@ export async function addCompartment(
   }
 
   if (clearance.compartments.includes(compartment)) {
-    return clearance; // Already has compartment
+    return clearance; 
   }
 
   const newCompartments = [...clearance.compartments, compartment];
@@ -198,7 +192,7 @@ export async function addCompartment(
     },
   });
 
-  // Record in history
+  
   await prisma.clearanceHistory.create({
     data: {
       userId,
@@ -215,9 +209,7 @@ export async function addCompartment(
   return updated;
 }
 
-/**
- * Remove compartment from user clearance
- */
+
 export async function removeCompartment(
   userId: string,
   compartment: string,
@@ -242,7 +234,7 @@ export async function removeCompartment(
     },
   });
 
-  // Record in history
+  
   await prisma.clearanceHistory.create({
     data: {
       userId,
@@ -259,9 +251,7 @@ export async function removeCompartment(
   return updated;
 }
 
-/**
- * Request clearance escalation
- */
+
 export async function requestEscalation(
   userId: string,
   targetLevel: SecurityLevel,
@@ -286,7 +276,7 @@ export async function requestEscalation(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId,
@@ -306,9 +296,7 @@ export async function requestEscalation(
   return updated;
 }
 
-/**
- * Process annual clearance review
- */
+
 export async function reviewClearance(
   userId: string,
   reviewedBy: string,
@@ -326,7 +314,7 @@ export async function reviewClearance(
   }
 
   if (approved) {
-    // Update next review date
+    
     const nextReviewAt = new Date();
     nextReviewAt.setFullYear(nextReviewAt.getFullYear() + 1);
 
@@ -347,7 +335,7 @@ export async function reviewClearance(
       data: updateData,
     });
 
-    // Record in history
+    
     await prisma.clearanceHistory.create({
       data: {
         userId,
@@ -361,7 +349,7 @@ export async function reviewClearance(
       },
     });
   } else {
-    // Suspend clearance if not approved
+    
     await prisma.userClearance.update({
       where: { userId },
       data: {
@@ -371,7 +359,7 @@ export async function reviewClearance(
     });
   }
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: reviewedBy,
@@ -389,9 +377,7 @@ export async function reviewClearance(
   });
 }
 
-/**
- * Get users requiring clearance review (annual review due)
- */
+
 export async function getUsersRequiringReview(daysBeforeDue: number = 30) {
   const reviewDate = new Date();
   reviewDate.setDate(reviewDate.getDate() + daysBeforeDue);

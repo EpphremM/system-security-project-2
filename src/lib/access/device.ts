@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DeviceType, TrustLevel } from "@/generated/prisma/enums";
 
-/**
- * Register or update device profile
- */
+
 export async function registerDevice(
   userId: string,
   deviceId: string,
@@ -21,7 +19,7 @@ export async function registerDevice(
     hasEncryptedStorage?: boolean;
   }
 ) {
-  // Get existing device if any
+  
   const existing = await prisma.deviceProfile.findUnique({
     where: { deviceId },
   });
@@ -64,9 +62,7 @@ export async function registerDevice(
   return device;
 }
 
-/**
- * Update device trust level
- */
+
 export async function updateDeviceTrustLevel(
   deviceId: string,
   trustLevel: TrustLevel,
@@ -80,7 +76,7 @@ export async function updateDeviceTrustLevel(
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: updatedBy,
@@ -97,9 +93,7 @@ export async function updateDeviceTrustLevel(
   return device;
 }
 
-/**
- * Get user devices
- */
+
 export async function getUserDevices(userId: string) {
   return await prisma.deviceProfile.findMany({
     where: { userId },
@@ -109,9 +103,7 @@ export async function getUserDevices(userId: string) {
   });
 }
 
-/**
- * Block device
- */
+
 export async function blockDevice(deviceId: string, blockedBy: string, reason?: string) {
   const device = await prisma.deviceProfile.update({
     where: { deviceId },
@@ -121,7 +113,7 @@ export async function blockDevice(deviceId: string, blockedBy: string, reason?: 
     },
   });
 
-  // Log audit event
+  
   await prisma.auditLog.create({
     data: {
       userId: blockedBy,

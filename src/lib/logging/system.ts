@@ -14,9 +14,7 @@ interface SystemLogOptions {
   securityLabel?: SecurityLevel;
 }
 
-/**
- * Log application start
- */
+
 export async function logAppStart(version: string, environment: string) {
   return await prisma.auditLog.create({
     data: {
@@ -34,9 +32,7 @@ export async function logAppStart(version: string, environment: string) {
   });
 }
 
-/**
- * Log application stop
- */
+
 export async function logAppStop(reason: string) {
   return await prisma.auditLog.create({
     data: {
@@ -53,9 +49,7 @@ export async function logAppStop(reason: string) {
   });
 }
 
-/**
- * Log application error
- */
+
 export async function logAppError(
   error: Error,
   context?: Record<string, any>
@@ -76,9 +70,7 @@ export async function logAppError(
   });
 }
 
-/**
- * Log backup start
- */
+
 export async function logBackupStart(
   backupId: string,
   backupType: string,
@@ -102,9 +94,7 @@ export async function logBackupStart(
   });
 }
 
-/**
- * Log backup completion
- */
+
 export async function logBackupComplete(
   backupId: string,
   duration: number,
@@ -131,9 +121,7 @@ export async function logBackupComplete(
   });
 }
 
-/**
- * Log backup failure
- */
+
 export async function logBackupFailed(
   backupId: string,
   errorMessage: string,
@@ -157,9 +145,7 @@ export async function logBackupFailed(
   });
 }
 
-/**
- * Log backup verification
- */
+
 export async function logBackupVerified(
   backupId: string,
   verified: boolean,
@@ -182,9 +168,7 @@ export async function logBackupVerified(
   });
 }
 
-/**
- * Log performance metric
- */
+
 export async function logPerformanceMetric(
   metricName: string,
   value: number,
@@ -216,9 +200,7 @@ export async function logPerformanceMetric(
   });
 }
 
-/**
- * Log exception
- */
+
 export async function logException(
   exception: Error,
   context?: Record<string, any>
@@ -239,9 +221,7 @@ export async function logException(
   });
 }
 
-/**
- * Log configuration change
- */
+
 export async function logConfigChange(
   configKey: string,
   oldValue: any,
@@ -266,15 +246,13 @@ export async function logConfigChange(
   });
 }
 
-/**
- * Generic system logger
- */
+
 export async function logSystemEvent(options: SystemLogOptions) {
   return await prisma.auditLog.create({
     data: {
       userId: null,
       category: "SYSTEM",
-      logType: "APP_ERROR", // Default, can be overridden in details
+      logType: "APP_ERROR", 
       action: options.action,
       resource: options.resource,
       resourceId: options.resourceId,

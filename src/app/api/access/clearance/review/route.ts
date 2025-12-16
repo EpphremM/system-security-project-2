@@ -57,9 +57,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get users requiring clearance review
- */
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

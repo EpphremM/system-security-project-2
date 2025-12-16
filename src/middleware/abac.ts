@@ -4,9 +4,7 @@ import { evaluateABACPolicy } from "@/lib/access/abac";
 import { extractClientMetadata } from "@/lib/utils/bot-prevention";
 import { prisma } from "@/lib/prisma";
 
-/**
- * ABAC middleware to enforce attribute-based access control
- */
+
 export async function enforceABAC(
   request: NextRequest,
   resourceType: string,
@@ -31,7 +29,7 @@ export async function enforceABAC(
   }
 
   try {
-    // SUPER_ADMIN bypass: Grant all ABAC permissions
+    
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { legacyRole: true },
@@ -41,7 +39,7 @@ export async function enforceABAC(
       return { allowed: true };
     }
 
-    // Get ABAC policies for this resource and action
+    
     const policies = await prisma.accessPolicy.findMany({
       where: {
         resource: resourceType,
@@ -55,14 +53,14 @@ export async function enforceABAC(
     });
 
     if (policies.length === 0) {
-      // No ABAC policies, allow access
+      
       return { allowed: true };
     }
 
-    // Extract client metadata
+    
     const metadata = extractClientMetadata(request);
 
-    // Evaluate each policy
+    
     for (const policy of policies) {
       if (!policy.attributes) {
         continue;

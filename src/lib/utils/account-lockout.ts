@@ -1,21 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { LockoutType } from "../../generated/prisma/client";
 
-const MAX_ATTEMPTS_LEVEL_1 = 5; // 15 minute lock
-const MAX_ATTEMPTS_LEVEL_2 = 10; // 24 hour lock
-const LOCKOUT_DURATION_LEVEL_1 = 15 * 60 * 1000; // 15 minutes
-const LOCKOUT_DURATION_LEVEL_2 = 24 * 60 * 60 * 1000; // 24 hours
+const MAX_ATTEMPTS_LEVEL_1 = 5; 
+const MAX_ATTEMPTS_LEVEL_2 = 10; 
+const LOCKOUT_DURATION_LEVEL_1 = 15 * 60 * 1000; 
+const LOCKOUT_DURATION_LEVEL_2 = 24 * 60 * 60 * 1000; 
 
 export interface LockoutCheck {
   locked: boolean;
   lockedUntil?: Date;
   attempts: number;
-  retryAfter?: number; // seconds
+  retryAfter?: number; 
 }
 
-/**
- * Check if account is locked
- */
+
 export async function checkAccountLockout(
   email: string
 ): Promise<LockoutCheck> {
@@ -32,7 +30,7 @@ export async function checkAccountLockout(
     return { locked: false, attempts: 0 };
   }
 
-  // Check if account is locked
+  
   if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
     const retryAfter = Math.ceil(
       (user.accountLockedUntil.getTime() - Date.now()) / 1000
@@ -45,7 +43,7 @@ export async function checkAccountLockout(
     };
   }
 
-  // Clear lock if expired
+  
   if (user.accountLockedUntil && user.accountLockedUntil <= new Date()) {
     await prisma.user.update({
       where: { id: user.id },
@@ -62,9 +60,7 @@ export async function checkAccountLockout(
   };
 }
 
-/**
- * Check if IP address is locked
- */
+
 export async function checkIPLockout(ipAddress: string): Promise<LockoutCheck> {
   const lockout = await prisma.accountLockout.findUnique({
     where: {
@@ -79,7 +75,7 @@ export async function checkIPLockout(ipAddress: string): Promise<LockoutCheck> {
     return { locked: false, attempts: 0 };
   }
 
-  // Check if lockout is still active
+  
   if (lockout.lockedUntil > new Date()) {
     const retryAfter = Math.ceil(
       (lockout.lockedUntil.getTime() - Date.now()) / 1000
@@ -92,7 +88,7 @@ export async function checkIPLockout(ipAddress: string): Promise<LockoutCheck> {
     };
   }
 
-  // Delete expired lockout
+  
   await prisma.accountLockout.delete({
     where: {
       identifier_type: {
@@ -105,14 +101,12 @@ export async function checkIPLockout(ipAddress: string): Promise<LockoutCheck> {
   return { locked: false, attempts: 0 };
 }
 
-/**
- * Record failed login attempt
- */
+
 export async function recordFailedLogin(
   email: string,
   ipAddress: string
 ): Promise<{ locked: boolean; lockedUntil?: Date }> {
-  // Update user failed attempts
+  
   const user = await prisma.user.findUnique({
     where: { email },
   });
@@ -124,12 +118,12 @@ export async function recordFailedLogin(
   const newAttempts = (user.failedLoginAttempts || 0) + 1;
   let lockedUntil: Date | null = null;
 
-  // Progressive lockout
+  
   if (newAttempts >= MAX_ATTEMPTS_LEVEL_2) {
-    // 24 hour lock
+    
     lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_LEVEL_2);
   } else if (newAttempts >= MAX_ATTEMPTS_LEVEL_1) {
-    // 15 minute lock
+    
     lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_LEVEL_1);
   }
 
@@ -142,7 +136,7 @@ export async function recordFailedLogin(
     },
   });
 
-  // Update IP-based lockout
+  
   await updateIPLockout(ipAddress);
 
   return {
@@ -151,9 +145,7 @@ export async function recordFailedLogin(
   };
 }
 
-/**
- * Reset failed login attempts on successful login
- */
+
 export async function resetFailedLoginAttempts(email: string): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { email },
@@ -170,9 +162,7 @@ export async function resetFailedLoginAttempts(email: string): Promise<void> {
   }
 }
 
-/**
- * Update IP-based lockout
- */
+
 async function updateIPLockout(ipAddress: string): Promise<void> {
   const existing = await prisma.accountLockout.findUnique({
     where: {
@@ -191,7 +181,7 @@ async function updateIPLockout(ipAddress: string): Promise<void> {
   } else if (newAttempts >= MAX_ATTEMPTS_LEVEL_1) {
     lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_LEVEL_1);
   } else {
-    lockedUntil = new Date(Date.now() + 60 * 1000); // 1 minute for early attempts
+    lockedUntil = new Date(Date.now() + 60 * 1000); 
   }
 
   await prisma.accountLockout.upsert({
@@ -214,9 +204,7 @@ async function updateIPLockout(ipAddress: string): Promise<void> {
   });
 }
 
-/**
- * Clean up expired lockouts
- */
+
 export async function cleanupExpiredLockouts(): Promise<number> {
   const expired = await prisma.accountLockout.findMany({
     where: {
