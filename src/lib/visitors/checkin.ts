@@ -82,9 +82,7 @@ export async function checkInVisitor(
   };
 }
 
-/**
- * Check out visitor
- */
+
 export async function checkOutVisitor(
   visitorId: string,
   checkedOutBy: string,
@@ -108,11 +106,14 @@ export async function checkOutVisitor(
     throw new Error("Visitor must be checked in before check-out");
   }
 
-  // Calculate retention period (default: 7 years for compliance)
-  const retentionPeriodStart = new Date();
-  const retentionPeriodDays = 2555; // 7 years
+  
 
-  // Update visitor
+  const retentionPeriodStart = new Date();
+  const retentionPeriodDays = 2555; 
+
+
+  
+
   await prisma.visitor.update({
     where: { id: visitorId },
     data: {
@@ -124,10 +125,12 @@ export async function checkOutVisitor(
     },
   });
 
-  // Generate visit completion report
+  
+
   const reportGenerated = await generateVisitReport(visitorId);
 
-  // Log check-out
+  
+
   await logVisitorAction(
     visitorId,
     "CHECKED_OUT",
@@ -141,9 +144,7 @@ export async function checkOutVisitor(
   };
 }
 
-/**
- * Automatic check-out for scheduled visits
- */
+
 export async function automaticCheckOut(): Promise<{
   checkedOut: number;
   visitorIds: string[];
@@ -151,12 +152,14 @@ export async function automaticCheckOut(): Promise<{
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-  // Find visitors who should be auto-checked out
+  
+
   const visitors = await prisma.visitor.findMany({
     where: {
       status: "CHECKED_IN",
       scheduledEnd: {
-        lte: oneHourAgo, // Scheduled end was more than 1 hour ago
+        lte: oneHourAgo, 
+
       },
     },
   });
@@ -181,17 +184,13 @@ export async function automaticCheckOut(): Promise<{
   };
 }
 
-/**
- * Verify QR code
- */
+
 function verifyQRCode(storedHash: string, providedCode: string): boolean {
   const providedHash = createHash("sha256").update(providedCode).digest("hex");
   return providedHash === storedHash;
 }
 
-/**
- * Generate QR code image
- */
+
 async function generateQRCodeImage(data: string): Promise<string> {
   const qrData = JSON.stringify({
     visitorId: data,
@@ -200,9 +199,7 @@ async function generateQRCodeImage(data: string): Promise<string> {
   return await QRCode.toDataURL(qrData);
 }
 
-/**
- * Notify host of arrival
- */
+
 async function notifyHostOfArrival(visitor: any): Promise<void> {
   if (!visitor.host || !visitor.host.email) {
     return;
@@ -230,9 +227,7 @@ async function notifyHostOfArrival(visitor: any): Promise<void> {
   });
 }
 
-/**
- * Generate visit completion report
- */
+
 async function generateVisitReport(visitorId: string): Promise<boolean> {
   const visitor = await prisma.visitor.findUnique({
     where: { id: visitorId },
@@ -262,7 +257,8 @@ async function generateVisitReport(visitorId: string): Promise<boolean> {
     actualCheckIn: visitor.actualCheckIn,
     actualCheckOut: visitor.actualCheckOut,
     duration: visitor.actualCheckIn && visitor.actualCheckOut
-      ? Math.round((visitor.actualCheckOut.getTime() - visitor.actualCheckIn.getTime()) / 1000 / 60) // minutes
+      ? Math.round((visitor.actualCheckOut.getTime() - visitor.actualCheckIn.getTime()) / 1000 / 60) 
+
       : null,
     activities: visitor.visitorLogs.map((log) => ({
       action: log.action,
@@ -281,8 +277,10 @@ async function generateVisitReport(visitorId: string): Promise<boolean> {
     generatedAt: new Date().toISOString(),
   };
 
-  // Store report (in production, save to file storage)
-  // For now, log it
+  
+
+  
+
   await logVisitorAction(
     visitorId,
     "VISIT_REPORT_GENERATED",
@@ -293,9 +291,7 @@ async function generateVisitReport(visitorId: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Get QR code for visitor
- */
+
 export async function getVisitorQRCode(visitorId: string): Promise<string> {
   const visitor = await prisma.visitor.findUnique({
     where: { id: visitorId },

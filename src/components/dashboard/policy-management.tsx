@@ -123,7 +123,7 @@ export function PolicyManagement() {
         </CardContent>
       </Card>
 
-      {/* Recent Changes */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Recent Policy Changes</CardTitle>

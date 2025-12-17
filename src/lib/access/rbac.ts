@@ -230,7 +230,8 @@ export async function getUserPermissions(userId: string): Promise<{
   rolePermissions.forEach((perm) => {
     const key = `${perm.permission.resource}_${perm.permission.action}`;
     if (!allPermissions.has(key) || !perm.granted) {
-      // Deny overrides grant
+      
+
       allPermissions.set(key, {
         ...perm,
         source: "role",
@@ -238,7 +239,8 @@ export async function getUserPermissions(userId: string): Promise<{
     }
   });
 
-  // Add direct permissions (highest priority)
+  
+
   directPermissions.forEach((perm) => {
     const key = `${perm.permission.resource}_${perm.permission.action}`;
     allPermissions.set(key, {
@@ -254,15 +256,14 @@ export async function getUserPermissions(userId: string): Promise<{
   };
 }
 
-/**
- * Check if user has permission (considering all roles)
- */
+
 export async function userHasPermission(
   userId: string,
   resource: string,
   action: string
 ): Promise<boolean> {
-  // SUPER_ADMIN bypass: Grant all RBAC permissions
+  
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { legacyRole: true },
@@ -282,13 +283,12 @@ export async function userHasPermission(
     return false;
   }
 
-  // Deny permissions override grants
+  
+
   return permission.granted === true;
 }
 
-/**
- * Assign role to user
- */
+
 export async function assignRole(
   userId: string,
   roleId: string,
@@ -297,7 +297,8 @@ export async function assignRole(
   expiresAt?: Date,
   reason?: string
 ) {
-  // Check if assignment already exists
+  
+
   const existing = await prisma.roleAssignment.findUnique({
     where: {
       userId_roleId: {
@@ -307,12 +308,14 @@ export async function assignRole(
     },
   });
 
-  // Calculate next review date (6 months from now)
+  
+
   const nextReviewAt = new Date();
   nextReviewAt.setMonth(nextReviewAt.getMonth() + 6);
 
   if (existing) {
-    // Update existing assignment
+    
+
     return await prisma.roleAssignment.update({
       where: { id: existing.id },
       data: {
@@ -326,7 +329,8 @@ export async function assignRole(
     });
   }
 
-  // Create new assignment
+  
+
   const assignment = await prisma.roleAssignment.create({
     data: {
       userId,
@@ -339,7 +343,8 @@ export async function assignRole(
     },
   });
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: assignedBy,
@@ -359,9 +364,7 @@ export async function assignRole(
   return assignment;
 }
 
-/**
- * Revoke role from user
- */
+
 export async function revokeRole(
   userId: string,
   roleId: string,
@@ -391,7 +394,8 @@ export async function revokeRole(
     },
   });
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: revokedBy,
@@ -409,9 +413,7 @@ export async function revokeRole(
   return updated;
 }
 
-/**
- * Request role assignment
- */
+
 export async function requestRole(
   userId: string,
   roleId: string,
@@ -421,7 +423,8 @@ export async function requestRole(
   isTemporary: boolean = false,
   requestedExpiresAt?: Date
 ) {
-  // Check for existing pending request
+  
+
   const existing = await prisma.roleRequest.findFirst({
     where: {
       userId,
@@ -447,7 +450,8 @@ export async function requestRole(
     },
   });
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: requestedBy,
@@ -466,9 +470,7 @@ export async function requestRole(
   return request;
 }
 
-/**
- * Approve role request
- */
+
 export async function approveRoleRequest(
   requestId: string,
   approvedBy: string,
@@ -487,7 +489,8 @@ export async function approveRoleRequest(
     throw new Error("Request is not pending");
   }
 
-  // Update request status
+  
+
   await prisma.roleRequest.update({
     where: { id: requestId },
     data: {
@@ -497,7 +500,8 @@ export async function approveRoleRequest(
     },
   });
 
-  // Assign role to user
+  
+
   const assignment = await assignRole(
     request.userId,
     request.roleId,
@@ -506,7 +510,8 @@ export async function approveRoleRequest(
     expiresAt || request.requestedExpiresAt || undefined
   );
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: approvedBy,
@@ -524,9 +529,7 @@ export async function approveRoleRequest(
   return assignment;
 }
 
-/**
- * Reject role request
- */
+
 export async function rejectRoleRequest(
   requestId: string,
   rejectedBy: string,
@@ -553,7 +556,8 @@ export async function rejectRoleRequest(
     },
   });
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: rejectedBy,
@@ -572,9 +576,7 @@ export async function rejectRoleRequest(
   return updated;
 }
 
-/**
- * Review role assignment
- */
+
 export async function reviewRole(
   roleId: string,
   reviewedBy: string,
@@ -584,11 +586,13 @@ export async function reviewRole(
   recommendations?: string,
   reviewType: "ANNUAL" | "AD_HOC" | "DEPROVISIONING" | "ESCALATION" = "ANNUAL"
 ) {
-  // Calculate next review date (6 months from now)
+  
+
   const nextReviewAt = new Date();
   nextReviewAt.setMonth(nextReviewAt.getMonth() + 6);
 
-  // Create review record
+  
+
   const review = await prisma.roleReview.create({
     data: {
       roleId,
@@ -602,7 +606,8 @@ export async function reviewRole(
     },
   });
 
-  // Update assignment if provided
+  
+
   if (assignmentId) {
     await prisma.roleAssignment.update({
       where: { id: assignmentId },
@@ -615,7 +620,8 @@ export async function reviewRole(
     });
   }
 
-  // If not approved and assignment exists, revoke role
+  
+
   if (!approved && assignmentId) {
     const assignment = await prisma.roleAssignment.findUnique({
       where: { id: assignmentId },
@@ -625,7 +631,8 @@ export async function reviewRole(
     }
   }
 
-  // Log audit event
+  
+
   await prisma.auditLog.create({
     data: {
       userId: reviewedBy,
@@ -645,9 +652,7 @@ export async function reviewRole(
   return review;
 }
 
-/**
- * Get roles requiring review (6 months since last review)
- */
+
 export async function getRolesRequiringReview(daysBeforeDue: number = 30) {
   const reviewDate = new Date();
   reviewDate.setDate(reviewDate.getDate() + daysBeforeDue);
@@ -685,9 +690,7 @@ export async function getRolesRequiringReview(daysBeforeDue: number = 30) {
   });
 }
 
-/**
- * Deprovision expired roles
- */
+
 export async function deprovisionExpiredRoles() {
   const expired = await prisma.roleAssignment.findMany({
     where: {
@@ -709,7 +712,8 @@ export async function deprovisionExpiredRoles() {
       },
     });
 
-    // Log audit event
+    
+
     await prisma.auditLog.create({
       data: {
         userId: assignment.assignedBy,
@@ -728,21 +732,21 @@ export async function deprovisionExpiredRoles() {
   return expired.length;
 }
 
-/**
- * Bulk assign permissions to role
- */
+
 export async function bulkAssignPermissions(
   roleId: string,
   permissionIds: string[],
   granted: boolean = true,
   conditions?: any
 ) {
-  // Delete existing permissions for this role
+  
+
   await prisma.rolePermission.deleteMany({
     where: { roleId },
   });
 
-  // Create new permissions
+  
+
   const permissions = await Promise.all(
     permissionIds.map((permissionId) =>
       prisma.rolePermission.create({
@@ -759,9 +763,7 @@ export async function bulkAssignPermissions(
   return permissions;
 }
 
-/**
- * Get role-permission matrix
- */
+
 export async function getRolePermissionMatrix() {
   const roles = await prisma.role.findMany({
     include: {
@@ -783,7 +785,8 @@ export async function getRolePermissionMatrix() {
     ],
   });
 
-  // Build matrix
+  
+
   const matrix = roles.map((role) => {
     const rolePerms = new Set(
       role.permissions

@@ -225,9 +225,7 @@ export function evaluateAttributeConditions(
   return { allowed: true };
 }
 
-/**
- * Evaluate single condition
- */
+
 function evaluateSingleCondition(
   condition: {
     attribute: string;
@@ -373,9 +371,7 @@ function evaluateSingleCondition(
   }
 }
 
-/**
- * Get attribute value from attribute path (e.g., "user.department", "resource.classification")
- */
+
 function getAttributeValue(
   attributePath: string,
   attributes: {
@@ -393,7 +389,8 @@ function getAttributeValue(
   } else if (category === "environment") {
     return getNestedValue(attributes.environment, path.join("."));
   } else {
-    // Try all categories
+    
+
     return (
       getNestedValue(attributes.user, attributePath) ||
       getNestedValue(attributes.resource, attributePath) ||
@@ -402,18 +399,14 @@ function getAttributeValue(
   }
 }
 
-/**
- * Get nested value from object
- */
+
 function getNestedValue(obj: Record<string, any>, path: string): any {
   return path.split(".").reduce((current, key) => {
     return current && current[key] !== undefined ? current[key] : undefined;
   }, obj);
 }
 
-/**
- * Parse attribute value based on type
- */
+
 function parseAttributeValue(value: string, valueType: ValueType): any {
   switch (valueType) {
     case "NUMBER":
@@ -434,9 +427,7 @@ function parseAttributeValue(value: string, valueType: ValueType): any {
   }
 }
 
-/**
- * Set user attribute
- */
+
 export async function setUserAttribute(
   userId: string,
   attributeName: string,
@@ -444,7 +435,8 @@ export async function setUserAttribute(
   source?: string,
   expiresAt?: Date
 ) {
-  // Get attribute definition
+  
+
   const attributeDef = await prisma.attributeDefinition.findUnique({
     where: { name: attributeName },
   });
@@ -453,10 +445,12 @@ export async function setUserAttribute(
     throw new Error(`Attribute definition not found: ${attributeName}`);
   }
 
-  // Validate value
+  
+
   validateAttributeValue(value, attributeDef);
 
-  // Create or update attribute
+  
+
   return await prisma.userAttribute.upsert({
     where: {
       userId_attributeId: {
@@ -480,9 +474,7 @@ export async function setUserAttribute(
   });
 }
 
-/**
- * Set resource attribute
- */
+
 export async function setResourceAttribute(
   resourceType: string,
   resourceId: string,
@@ -491,7 +483,8 @@ export async function setResourceAttribute(
   source?: string,
   calculated: boolean = false
 ) {
-  // Get or create resource
+  
+
   let resource = await prisma.resource.findUnique({
     where: {
       type_resourceId: {
@@ -505,7 +498,8 @@ export async function setResourceAttribute(
     throw new Error("Resource not found");
   }
 
-  // Get attribute definition
+  
+
   const attributeDef = await prisma.attributeDefinition.findUnique({
     where: { name: attributeName },
   });
@@ -514,10 +508,12 @@ export async function setResourceAttribute(
     throw new Error(`Attribute definition not found: ${attributeName}`);
   }
 
-  // Validate value
+  
+
   validateAttributeValue(value, attributeDef);
 
-  // Create or update attribute
+  
+
   return await prisma.resourceAttribute.upsert({
     where: {
       resourceId_attributeId: {
@@ -541,11 +537,10 @@ export async function setResourceAttribute(
   });
 }
 
-/**
- * Validate attribute value
- */
+
 function validateAttributeValue(value: string, attributeDef: any) {
-  // Type validation
+  
+
   switch (attributeDef.valueType) {
     case "NUMBER":
       if (isNaN(Number(value))) {
@@ -579,7 +574,8 @@ function validateAttributeValue(value: string, attributeDef: any) {
       break;
   }
 
-  // Pattern validation
+  
+
   if (attributeDef.pattern) {
     const regex = new RegExp(attributeDef.pattern);
     if (!regex.test(value)) {
@@ -588,12 +584,11 @@ function validateAttributeValue(value: string, attributeDef: any) {
   }
 }
 
-/**
- * Initialize default attribute definitions
- */
+
 export async function initializeDefaultAttributes() {
   const defaultAttributes = [
-    // User attributes
+    
+
     {
       name: "role",
       description: "User role",
@@ -647,7 +642,8 @@ export async function initializeDefaultAttributes() {
       category: "SECURITY" as AttributeCategory,
       valueType: "NUMBER" as ValueType,
     },
-    // Resource attributes
+    
+
     {
       name: "classification",
       description: "Resource classification level",
@@ -703,7 +699,8 @@ export async function initializeDefaultAttributes() {
   }
 }
 
-// Helper functions (reuse from rubac.ts)
+
+
 async function checkOfficeNetwork(ipAddress: string): Promise<boolean> {
   const officeNetworks = await prisma.iPWhitelist.findMany({
     where: {

@@ -13,15 +13,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { legacyRole: true },
+    });
+
+    const userRole = currentUser?.legacyRole || (session.user.role as string) || "USER";
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "HR" || userRole === "IT_ADMIN";
+    const isReceptionist = userRole === "RECEPTIONIST";
+    const isSecurity = userRole === "SECURITY";
+
+    const whereClause: any = {};
     
+    if (!isSuperAdmin && !isAdmin && !isReceptionist && !isSecurity) {
+      whereClause.hostId = session.user.id;
+    }
+
     const visits = await prisma.visitor.findMany({
-      where: {
-        hostId: session.user.id,
-      },
+      where: whereClause,
       orderBy: {
         scheduledDate: "desc",
       },
-      take: 50,
+      take: (isSuperAdmin || isAdmin) ? 1000 : 50,
       select: {
         id: true,
         firstName: true,
@@ -37,6 +51,14 @@ export async function GET(request: NextRequest) {
         status: true,
         actualCheckIn: true,
         actualCheckOut: true,
+        hostId: true,
+        host: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -56,6 +78,9 @@ export async function GET(request: NextRequest) {
       status: visit.status,
       checkInTime: visit.actualCheckIn?.toISOString(),
       checkOutTime: visit.actualCheckOut?.toISOString(),
+      hostId: visit.hostId,
+      host: visit.host,
+      canEdit: isSuperAdmin || isAdmin || isReceptionist || visit.hostId === session.user.id,
     }));
 
     return NextResponse.json({

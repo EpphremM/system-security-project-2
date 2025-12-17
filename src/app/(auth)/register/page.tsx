@@ -41,7 +41,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
   
-  // Behavioral tracking
   const formStartTime = useRef<number>(Date.now());
   const [mouseMovements, setMouseMovements] = useState(0);
   const [keystrokes, setKeystrokes] = useState(0);
@@ -61,7 +60,6 @@ export default function RegisterPage() {
 
   const password = watch("password");
 
-  // Track mouse movements
   useEffect(() => {
     const handleMouseMove = () => {
       setMouseMovements((prev) => prev + 1);
@@ -70,7 +68,6 @@ export default function RegisterPage() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Track keystrokes
   useEffect(() => {
     const handleKeyPress = () => {
       setKeystrokes((prev) => prev + 1);
@@ -79,11 +76,9 @@ export default function RegisterPage() {
     return () => window.removeEventListener("keypress", handleKeyPress);
   }, []);
 
-  // Generate device fingerprint
   useEffect(() => {
     const generateFingerprint = async () => {
       try {
-        // Simple fingerprint based on browser features
         const fingerprint = {
           userAgent: navigator.userAgent,
           language: navigator.language,
@@ -141,7 +136,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Redirect to verification page
       router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -167,7 +161,7 @@ export default function RegisterPage() {
             <Input
               id="name"
               {...register("name")}
-              placeholder="John Doe"
+              placeholder="Enter your full name"
               disabled={loading}
             />
             {errors.name && (

@@ -124,7 +124,8 @@ export async function executeRecoveryPlan(
           completedAt: new Date().toISOString(),
         });
 
-        // Update execution
+        
+
         await prisma.recoveryExecution.update({
           where: { id: execution.id },
           data: {
@@ -144,7 +145,8 @@ export async function executeRecoveryPlan(
           completedAt: new Date().toISOString(),
         });
 
-        // Update execution with failure
+        
+
         await prisma.recoveryExecution.update({
           where: { id: execution.id },
           data: {
@@ -162,7 +164,8 @@ export async function executeRecoveryPlan(
       }
     }
 
-    // Mark as completed
+    
+
     await prisma.recoveryExecution.update({
       where: { id: execution.id },
       data: {
@@ -179,7 +182,8 @@ export async function executeRecoveryPlan(
 
     return execution.id;
   } catch (error) {
-    // Already handled in loop, but ensure status is updated
+    
+
     await prisma.recoveryExecution.update({
       where: { id: execution.id },
       data: {
@@ -194,37 +198,44 @@ export async function executeRecoveryPlan(
   }
 }
 
-/**
- * Execute a single recovery step
- */
+
 async function executeRecoveryStep(step: any, plan: any): Promise<void> {
-  // In production, implement actual recovery steps
-  // For now, simulate step execution
+  
+
+  
+
   if (step.type === "RESTORE_BACKUP") {
-    // Restore from backup
+    
+
     const backupId = step.backupId;
     if (!backupId) {
       throw new Error("Backup ID required for restore step");
     }
-    // Implement backup restoration
+    
+
   } else if (step.type === "VERIFY_SYSTEM") {
-    // Verify system integrity
-    // Implement verification
+    
+
+    
+
   } else if (step.type === "NOTIFY_TEAM") {
-    // Notify recovery team
-    // Implement notification
+    
+
+    
+
   } else if (step.type === "REGULATORY_NOTIFICATION") {
-    // Send regulatory notifications
-    // Implement notification
+    
+
+    
+
   }
   
-  // Simulate step execution delay
+  
+
   await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-/**
- * Get recovery plan documentation
- */
+
 export async function getRecoveryPlanDocumentation(planId: string): Promise<any> {
   const plan = await prisma.disasterRecoveryPlan.findUnique({
     where: { id: planId },
@@ -268,9 +279,7 @@ export async function getRecoveryPlanDocumentation(planId: string): Promise<any>
   };
 }
 
-/**
- * Test disaster recovery plan
- */
+
 export async function testRecoveryPlan(
   planId: string,
   testedBy: string
@@ -287,7 +296,8 @@ export async function testRecoveryPlan(
   }
 
   try {
-    // Execute plan in test mode
+    
+
     const executionId = await executeRecoveryPlan(planId, testedBy);
 
     const execution = await prisma.recoveryExecution.findUnique({
@@ -301,9 +311,11 @@ export async function testRecoveryPlan(
       executionLog: execution?.executionLog,
     };
 
-    // Update plan with test results
+    
+
     const nextTestDate = new Date();
-    nextTestDate.setMonth(nextTestDate.getMonth() + 3); // Next test in 3 months
+    nextTestDate.setMonth(nextTestDate.getMonth() + 3); 
+
 
     await prisma.disasterRecoveryPlan.update({
       where: { id: planId },

@@ -64,8 +64,10 @@ async function detectUnusualAccessPatterns(
     unusualPatterns.push(`High number of access denials: ${stats.accessDenied}`);
   }
 
-  // Unusual user activity
-  const aggregation = await aggregateLogs("USER_ACTIVITY", 3600); // Last hour
+  
+
+  const aggregation = await aggregateLogs("USER_ACTIVITY", 3600); 
+
   const topUser = Object.entries(aggregation.byUser).sort(
     (a, b) => b[1] - a[1]
   )[0];
@@ -95,15 +97,14 @@ async function detectUnusualAccessPatterns(
   };
 }
 
-/**
- * Detect policy violation trends
- */
+
 async function detectPolicyViolationTrends(
   since: Date
 ): Promise<any | null> {
   const stats = await getLogStatistics(since, new Date(), "SECURITY");
 
-  // Count policy violations
+  
+
   const { prisma } = await import("@/lib/prisma");
   const violations = await prisma.auditLog.count({
     where: {
@@ -136,17 +137,17 @@ async function detectPolicyViolationTrends(
   };
 }
 
-/**
- * Detect performance degradation
- */
+
 async function detectPerformanceDegradation(
   since: Date
 ): Promise<any | null> {
   const stats = await getLogStatistics(since, new Date(), "SYSTEM");
 
-  // Check average response time
+  
+
   if (stats.averageResponseTime > 1000) {
-    // More than 1 second
+    
+
     return {
       alertType: "PERFORMANCE_DEGRADATION",
       severity: stats.averageResponseTime > 5000 ? "HIGH" : "MEDIUM",
@@ -166,13 +167,12 @@ async function detectPerformanceDegradation(
   return null;
 }
 
-/**
- * Detect compliance gaps
- */
+
 async function detectComplianceGaps(since: Date): Promise<any | null> {
   const { prisma } = await import("@/lib/prisma");
 
-  // Check for missing compliance logs
+  
+
   const complianceLogs = await prisma.auditLog.count({
     where: {
       category: "COMPLIANCE",
@@ -182,7 +182,8 @@ async function detectComplianceGaps(since: Date): Promise<any | null> {
     },
   });
 
-  // Check for unresolved anomalies
+  
+
   const unresolvedAnomalies = await getRecentAnomalies(100, "HIGH");
   const criticalAnomalies = unresolvedAnomalies.filter(
     (a: any) => a.severity === "CRITICAL" || a.severity === "HIGH"
@@ -208,9 +209,7 @@ async function detectComplianceGaps(since: Date): Promise<any | null> {
   return null;
 }
 
-/**
- * Get active dashboard alerts
- */
+
 export async function getActiveDashboardAlerts(
   limit: number = 50
 ): Promise<any[]> {
@@ -226,9 +225,7 @@ export async function getActiveDashboardAlerts(
   });
 }
 
-/**
- * Dismiss dashboard alert
- */
+
 export async function dismissDashboardAlert(
   alertId: string,
   dismissedBy: string

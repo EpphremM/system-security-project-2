@@ -46,7 +46,8 @@ export async function sendImmediateAlert(
     }
   }
 
-  // Update alert status
+  
+
   await prisma.alert.update({
     where: { id: alert.id },
     data: {
@@ -58,9 +59,7 @@ export async function sendImmediateAlert(
   return alert.id;
 }
 
-/**
- * Alert: Multiple failed login attempts
- */
+
 export async function alertMultipleFailedLogins(
   email: string,
   attemptCount: number,
@@ -83,9 +82,7 @@ export async function alertMultipleFailedLogins(
   );
 }
 
-/**
- * Alert: Unauthorized access attempt
- */
+
 export async function alertUnauthorizedAccess(
   userId: string,
   resource: string,
@@ -93,7 +90,8 @@ export async function alertUnauthorizedAccess(
   reason: string,
   ipAddress?: string
 ): Promise<void> {
-  // Get user email
+  
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { email: true, name: true },
@@ -122,9 +120,7 @@ export async function alertUnauthorizedAccess(
   );
 }
 
-/**
- * Alert: Critical system error
- */
+
 export async function alertCriticalSystemError(
   error: Error,
   context?: Record<string, any>
@@ -152,9 +148,7 @@ export async function alertCriticalSystemError(
   );
 }
 
-/**
- * Alert: Backup failure
- */
+
 export async function alertBackupFailure(
   backupId: string,
   errorMessage: string,
@@ -180,9 +174,7 @@ export async function alertBackupFailure(
   );
 }
 
-/**
- * Send email alert
- */
+
 async function sendEmailAlert(
   alertId: string,
   recipients: string[],
@@ -225,37 +217,45 @@ async function sendEmailAlert(
   }
 }
 
-/**
- * Send SMS alert (placeholder - integrate with SMS provider)
- */
+
 async function sendSMSAlert(
   alertId: string,
   recipients: string[],
   message: string,
   severity: AlertSeverity
 ): Promise<void> {
-  // In production, integrate with SMS provider (Twilio, AWS SNS, etc.)
-  // For now, log the SMS alert
+  
+
+  
+
   console.log(`SMS Alert [${severity}]: ${message}`, {
     alertId,
     recipients,
   });
 
-  // Example Twilio integration:
-  // const twilio = require('twilio');
-  // const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
-  // for (const recipient of recipients) {
-  //   await client.messages.create({
-  //     body: `[${severity}] ${message}`,
-  //     from: process.env.TWILIO_PHONE_NUMBER,
-  //     to: recipient
-  //   });
-  // }
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
 }
 
-/**
- * Get category for alert type
- */
+
 function getCategoryForAlertType(alertType: AlertType): AlertCategory {
   switch (alertType) {
     case "MULTIPLE_FAILED_LOGINS":

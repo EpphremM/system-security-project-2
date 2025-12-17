@@ -113,7 +113,8 @@ export function UserManagement() {
       if (response.ok) {
         setEditDialogOpen(false);
         setSelectedUser(null);
-        fetchUsers(); // Refresh list
+        fetchUsers(); 
+
       } else {
         const error = await response.json();
         alert(error.error || "Failed to update user");
@@ -138,7 +139,8 @@ export function UserManagement() {
       if (response.ok) {
         setDeleteDialogOpen(false);
         setSelectedUser(null);
-        fetchUsers(); // Refresh list
+        fetchUsers(); 
+
       } else {
         const error = await response.json();
         alert(error.error || "Failed to delete user");
@@ -179,7 +181,7 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Search */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4">
@@ -196,7 +198,7 @@ export function UserManagement() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>All Users</CardTitle>
@@ -271,7 +273,7 @@ export function UserManagement() {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
+      {}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -354,7 +356,7 @@ export function UserManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>

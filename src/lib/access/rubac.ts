@@ -41,7 +41,8 @@ export function evaluateTimeRule(
     }
   }
 
-  // Check working hours
+  
+
   if (config.workingHours) {
     const startMinutes = parseTime(config.workingHours.start);
     const endMinutes = parseTime(config.workingHours.end);
@@ -54,16 +55,17 @@ export function evaluateTimeRule(
     }
   }
 
-  // Check holidays (if excludeHolidays is true)
-  // This would require checking against HolidaySchedule
-  // For now, we'll return allowed and check holidays separately
+  
+
+  
+
+  
+
 
   return { allowed: true };
 }
 
-/**
- * Check if current date is a holiday
- */
+
 export async function isHoliday(
   date: Date = new Date(),
   excludeTypes: HolidayType[] = []
@@ -81,15 +83,17 @@ export async function isHoliday(
   return holidays.length > 0;
 }
 
-/**
- * Location-based rule evaluation
- */
+
 export interface LocationRuleConfig {
-  ipWhitelist?: string[]; // IP ranges in CIDR notation
-  ipWhitelistIds?: string[]; // IDs of IPWhitelist entries
+  ipWhitelist?: string[]; 
+
+  ipWhitelistIds?: string[]; 
+
   requireVPN?: boolean;
-  allowedCountries?: string[]; // ISO country codes
-  blockedCountries?: string[]; // ISO country codes
+  allowedCountries?: string[]; 
+
+  blockedCountries?: string[]; 
+
   requireOfficeNetwork?: boolean;
   emergencyOverride?: boolean;
 }
@@ -100,12 +104,14 @@ export async function evaluateLocationRule(
   userAgent?: string,
   geoLocation?: { country?: string; city?: string }
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Check emergency override
+  
+
   if (config.emergencyOverride) {
     return { allowed: true };
   }
 
-  // Check IP whitelist
+  
+
   if (config.ipWhitelistIds && config.ipWhitelistIds.length > 0) {
     const whitelists = await prisma.iPWhitelist.findMany({
       where: {
@@ -148,11 +154,15 @@ export async function evaluateLocationRule(
     }
   }
 
-  // Check VPN requirement
+  
+
   if (config.requireVPN) {
-    // Check if IP is from VPN (this would require VPN network configuration)
-    // For now, we'll assume VPN IPs are in a specific range
-    // In production, you'd check against VPN network configuration
+    
+
+    
+
+    
+
     const isVPN = await checkVPNConnection(ipAddress);
     if (!isVPN) {
       return {
@@ -162,9 +172,11 @@ export async function evaluateLocationRule(
     }
   }
 
-  // Check office network requirement
+  
+
   if (config.requireOfficeNetwork) {
-    // Check if IP is from office network
+    
+
     const isOfficeNetwork = await checkOfficeNetwork(ipAddress);
     if (!isOfficeNetwork) {
       return {
@@ -174,7 +186,8 @@ export async function evaluateLocationRule(
     }
   }
 
-  // Check geographic restrictions
+  
+
   if (geoLocation?.country) {
     if (config.blockedCountries?.includes(geoLocation.country)) {
       return {
@@ -196,19 +209,20 @@ export async function evaluateLocationRule(
   return { allowed: true };
 }
 
-/**
- * Device-based rule evaluation
- */
+
 export interface DeviceRuleConfig {
   requireCompanyManaged?: boolean;
-  requireOS?: string[]; // e.g., ["Windows", "macOS", "Linux"]
+  requireOS?: string[]; 
+
   requireOSVersion?: { os: string; minVersion: string }[];
-  requireBrowser?: string[]; // e.g., ["Chrome", "Firefox", "Safari"]
+  requireBrowser?: string[]; 
+
   requireBrowserVersion?: { browser: string; minVersion: string }[];
   requireAntiMalware?: boolean;
   requireEncryptedStorage?: boolean;
   minTrustLevel?: TrustLevel;
-  blockedDevices?: string[]; // Device IDs
+  blockedDevices?: string[]; 
+
   emergencyOverride?: boolean;
 }
 
@@ -224,12 +238,14 @@ export async function evaluateDeviceRule(
     userAgent?: string;
   }
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Check emergency override
+  
+
   if (config.emergencyOverride) {
     return { allowed: true };
   }
 
-  // Get device profile if deviceId provided
+  
+
   let deviceProfile = null;
   if (deviceId) {
     deviceProfile = await prisma.deviceProfile.findUnique({
@@ -237,7 +253,8 @@ export async function evaluateDeviceRule(
     });
   }
 
-  // Check blocked devices
+  
+
   if (config.blockedDevices && deviceId && config.blockedDevices.includes(deviceId)) {
     return {
       allowed: false,
@@ -245,7 +262,8 @@ export async function evaluateDeviceRule(
     };
   }
 
-  // Check company-managed device requirement
+  
+
   if (config.requireCompanyManaged) {
     if (!deviceProfile || !deviceProfile.isCompanyManaged) {
       return {
@@ -255,7 +273,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check OS requirements
+  
+
   if (config.requireOS && config.requireOS.length > 0) {
     const os = deviceInfo?.os || deviceProfile?.os;
     if (!os || !config.requireOS.includes(os)) {
@@ -266,7 +285,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check OS version requirements
+  
+
   if (config.requireOSVersion && config.requireOSVersion.length > 0) {
     const os = deviceInfo?.os || deviceProfile?.os;
     const osVersion = deviceInfo?.osVersion || deviceProfile?.osVersion;
@@ -282,7 +302,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check browser requirements
+  
+
   if (config.requireBrowser && config.requireBrowser.length > 0) {
     const browser = deviceInfo?.browser || deviceProfile?.browser;
     if (!browser || !config.requireBrowser.includes(browser)) {
@@ -293,7 +314,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check browser version requirements
+  
+
   if (config.requireBrowserVersion && config.requireBrowserVersion.length > 0) {
     const browser = deviceInfo?.browser || deviceProfile?.browser;
     const browserVersion = deviceInfo?.browserVersion || deviceProfile?.browserVersion;
@@ -309,7 +331,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check anti-malware requirement
+  
+
   if (config.requireAntiMalware) {
     if (!deviceProfile || !deviceProfile.hasAntiMalware) {
       return {
@@ -319,7 +342,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check encrypted storage requirement
+  
+
   if (config.requireEncryptedStorage) {
     if (!deviceProfile || !deviceProfile.hasEncryptedStorage) {
       return {
@@ -329,7 +353,8 @@ export async function evaluateDeviceRule(
     }
   }
 
-  // Check trust level
+  
+
   if (config.minTrustLevel && deviceProfile) {
     const trustLevels: TrustLevel[] = ["BLOCKED", "UNTRUSTED", "UNKNOWN", "VERIFIED", "TRUSTED"];
     const currentLevel = trustLevels.indexOf(deviceProfile.trustLevel);
@@ -346,9 +371,7 @@ export async function evaluateDeviceRule(
   return { allowed: true };
 }
 
-/**
- * Evaluate composite rule (multiple rule types)
- */
+
 export async function evaluateCompositeRule(
   rules: Array<{
     type: RuleType;
@@ -363,7 +386,8 @@ export async function evaluateCompositeRule(
     currentTime?: Date;
   }
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // All rules must pass (AND logic)
+  
+
   for (const rule of rules) {
     let result: { allowed: boolean; reason?: string };
 
@@ -402,9 +426,7 @@ export async function evaluateCompositeRule(
   return { allowed: true };
 }
 
-/**
- * Evaluate access rule
- */
+
 export async function evaluateAccessRule(
   ruleId: string,
   context: {
@@ -421,10 +443,12 @@ export async function evaluateAccessRule(
   });
 
   if (!rule || !rule.enabled) {
-    return { allowed: true }; // If rule doesn't exist or is disabled, allow access
+    return { allowed: true }; 
+
   }
 
-  // Check validity period
+  
+
   if (rule.validFrom && context.currentTime && context.currentTime < rule.validFrom) {
     return {
       allowed: false,
@@ -439,7 +463,8 @@ export async function evaluateAccessRule(
     };
   }
 
-  // Evaluate based on rule type
+  
+
   const config = rule.config as any;
 
   switch (rule.ruleType) {
@@ -470,7 +495,8 @@ export async function evaluateAccessRule(
   }
 }
 
-// Helper functions
+
+
 
 function parseTime(timeStr: string): number {
   const [hours, minutes] = timeStr.split(":").map(Number);
@@ -483,18 +509,22 @@ function getDayName(day: number): string {
 }
 
 function isIPInRange(ip: string, range: string): boolean {
-  // Simple CIDR check (for production, use a proper CIDR library)
+  
+
   if (range.includes("/")) {
     const [network, prefixLength] = range.split("/");
-    // This is a simplified check - use a proper CIDR library in production
+    
+
     return ip.startsWith(network.split(".").slice(0, parseInt(prefixLength) / 8).join("."));
   }
   return ip === range;
 }
 
 async function checkVPNConnection(ipAddress: string): Promise<boolean> {
-  // Check if IP is from VPN network
-  // In production, check against VPN network configuration
+  
+
+  
+
   const vpnNetworks = await prisma.iPWhitelist.findMany({
     where: {
       location: { contains: "VPN" },
@@ -514,7 +544,8 @@ async function checkVPNConnection(ipAddress: string): Promise<boolean> {
 }
 
 async function checkOfficeNetwork(ipAddress: string): Promise<boolean> {
-  // Check if IP is from office network
+  
+
   const officeNetworks = await prisma.iPWhitelist.findMany({
     where: {
       location: { contains: "Office" },
@@ -534,7 +565,8 @@ async function checkOfficeNetwork(ipAddress: string): Promise<boolean> {
 }
 
 function compareVersions(version1: string, version2: string): boolean {
-  // Simple version comparison (for production, use a proper version comparison library)
+  
+
   const v1Parts = version1.split(".").map(Number);
   const v2Parts = version2.split(".").map(Number);
 
@@ -546,7 +578,8 @@ function compareVersions(version1: string, version2: string): boolean {
     if (v1Part < v2Part) return false;
   }
 
-  return true; // Versions are equal
+  return true; 
+
 }
 
 

@@ -46,23 +46,59 @@ export function ShareModal({
   const [expiryDate, setExpiryDate] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isTopSecretUser, setIsTopSecretUser] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setSearchQuery("");
+      setSelectedUsers(new Set());
+      setPermissions({});
+      setExpiryDate("");
+      setError("");
       fetchUsers();
+      checkUserClearance();
     }
   }, [open]);
+
+  const checkUserClearance = async () => {
+    try {
+      const sessionResponse = await fetch("/api/auth/session");
+      if (sessionResponse.ok) {
+        const session = await sessionResponse.json();
+        if (session.user?.id) {
+          const userResponse = await fetch(`/api/users/${session.user.id}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            const clearance = userData.user?.securityClearance || userData.user?.clearance?.level;
+            setIsTopSecretUser(clearance === "TOP_SECRET");
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to check user clearance:", err);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/dashboard/users?limit=100");
+      setError("");
+      const response = await fetch("/api/users/list?limit=100");
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
         setUsers(data.users || []);
+        if (!data.users || data.users.length === 0) {
+          setError("No users found in the system");
+        }
+      } else {
+        const errorMessage = data.error || data.message || `Failed to fetch users (${response.status})`;
+        setError(errorMessage);
+        console.error("Failed to fetch users:", { status: response.status, error: data });
       }
     } catch (err) {
       console.error("Failed to fetch users:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch users. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -89,6 +125,11 @@ export function ShareModal({
   };
 
   const togglePermission = (userId: string, permission: Permission) => {
+    if (isTopSecretUser && permission !== "READ") {
+      setError("TOP_SECRET users can only grant READ permission");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
     const userPerms = permissions[userId] || [];
     const newPerms = userPerms.includes(permission)
       ? userPerms.filter((p) => p !== permission)
@@ -106,23 +147,56 @@ export function ShareModal({
     setLoading(true);
 
     try {
-      const sharePromises = Array.from(selectedUsers).map((userId) => {
-        const userPerms = permissions[userId] || ["READ"];
-        return fetch("/api/access/dac/permissions/grant", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            resourceId,
-            userId,
-            permissions: userPerms,
-            expiresAt: expiryDate ? new Date(expiryDate).toISOString() : undefined,
-          }),
-        });
-      });
+      const results = await Promise.allSettled(
+        Array.from(selectedUsers).map(async (userId) => {
+          const userPerms = permissions[userId] || ["READ"];
+          
+          const permissionsObj = {
+            read: userPerms.includes("READ"),
+            write: userPerms.includes("WRITE"),
+            delete: userPerms.includes("DELETE"),
+            share: userPerms.includes("SHARE"),
+          };
 
-      await Promise.all(sharePromises);
+          const response = await fetch("/api/access/dac/permissions/grant", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              resourceType,
+              resourceId,
+              userId,
+              permissions: permissionsObj,
+              expiresAt: expiryDate ? new Date(expiryDate).toISOString() : undefined,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || data.message || `Failed to grant permission (${response.status})`);
+          }
+
+          return data;
+        })
+      );
+
+      const errors = results
+        .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+        .map((r) => r.reason?.message || "Unknown error");
+
+      if (errors.length > 0) {
+        setError(errors.join("; "));
+        return;
+      }
+
+      const failed = results.filter((r) => r.status === "fulfilled" && !r.value.success);
+      if (failed.length > 0) {
+        setError("Some permissions could not be granted");
+        return;
+      }
+
       onOpenChange(false);
       
       setSelectedUsers(new Set());
@@ -131,7 +205,7 @@ export function ShareModal({
       setSearchQuery("");
     } catch (err) {
       console.error("Share error:", err);
-      setError("Failed to share resource. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to share resource. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -197,34 +271,53 @@ export function ShareModal({
                         </div>
                       </div>
 
-                      {/* Permissions */}
-                      {isSelected && (
-                        <div className="mt-3 ml-7 space-y-2">
-                          <Label className="text-xs">Permissions:</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {(["READ", "WRITE", "DELETE", "SHARE"] as Permission[]).map((perm) => (
-                              <label
-                                key={perm}
-                                className="flex items-center gap-1.5 text-xs cursor-pointer"
-                              >
-                                <Checkbox
-                                  checked={userPerms.includes(perm)}
-                                  onCheckedChange={() => togglePermission(user.id, perm)}
-                                />
-                                <span>{perm}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                       {}
+                       {isSelected && (
+                         <div className="mt-3 ml-7 space-y-2">
+                           <Label className="text-xs">
+                             Permissions:
+                             {isTopSecretUser && (
+                               <span className="ml-2 text-xs text-amber-600 font-normal">
+                                 (TOP_SECRET: READ only)
+                               </span>
+                             )}
+                           </Label>
+                           <div className="flex flex-wrap gap-2">
+                             {(["READ", "WRITE", "DELETE", "SHARE"] as Permission[]).map((perm) => {
+                               const isDisabled = isTopSecretUser && perm !== "READ";
+                               return (
+                                 <label
+                                   key={perm}
+                                   className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded border transition-colors ${
+                                     isDisabled
+                                       ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
+                                       : "border-gray-200 hover:bg-gray-100 cursor-pointer"
+                                   }`}
+                                 >
+                                   <Checkbox
+                                     checked={userPerms.includes(perm)}
+                                     onCheckedChange={() => togglePermission(user.id, perm)}
+                                     disabled={isDisabled}
+                                   />
+                                   <span className="font-medium">{perm}</span>
+                                 </label>
+                               );
+                             })}
+                           </div>
+                           {userPerms.length === 0 && (
+                             <p className="text-xs text-amber-600 mt-1">
+                               ⚠️ No permissions selected. User will not have access.
+                             </p>
+                           )}
+                         </div>
+                       )}
                     </div>
                   );
                 })}
               </div>
             )}
           </div>
-
-          {/* Expiry Date */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="expiry">Expiry Date (Optional)</Label>
             <div className="relative">

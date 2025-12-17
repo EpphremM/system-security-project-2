@@ -80,9 +80,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Update retention dates for logs based on compliance tags
- */
+
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth();
@@ -94,7 +92,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Find logs without retention dates
+    
+
     const logsWithoutRetention = await prisma.auditLog.findMany({
       where: {
         retentionUntil: null,

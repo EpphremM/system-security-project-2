@@ -14,24 +14,69 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    
-    const accessCheck = await checkAccess(request, {
-      resourceType: "user",
-      action: "read",
-      routePath: "/dashboard/users",
-      requiredPermission: "manage_users",
-      checkRBAC: true,
-      checkMAC: false,
-      checkDAC: false,
-      checkRuBAC: false,
-      checkABAC: false,
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { 
+        legacyRole: true,
+        securityClearance: true,
+        clearance: {
+          select: {
+            level: true,
+            status: true,
+            expiresAt: true,
+          },
+        },
+      },
     });
 
-    if (!accessCheck.allowed) {
-      return accessCheck.response || NextResponse.json(
-        { error: "Access Denied" },
-        { status: 403 }
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
       );
+    }
+
+    const userRole = currentUser.legacyRole || (session.user.role as string) || "USER";
+    const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "HR" || userRole === "IT_ADMIN";
+    
+    const clearanceLevel = currentUser.clearance?.level ?? currentUser.securityClearance;
+    const clearanceStatus = currentUser.clearance?.status;
+    const clearanceExpired = currentUser.clearance?.expiresAt ? currentUser.clearance.expiresAt < new Date() : false;
+    const hasActiveClearanceRecord = currentUser.clearance && clearanceStatus === "ACTIVE" && !clearanceExpired;
+    const hasTopSecretInSecurityClearance = currentUser.securityClearance === "TOP_SECRET";
+    const hasTopSecretInClearanceRecord = currentUser.clearance?.level === "TOP_SECRET" && hasActiveClearanceRecord;
+    const hasTopSecretClearance = hasTopSecretInSecurityClearance || hasTopSecretInClearanceRecord;
+    
+    if (!isAdmin && !hasTopSecretClearance) {
+      const accessCheck = await checkAccess(request, {
+        resourceType: "user",
+        action: "read",
+        routePath: "/dashboard/users",
+        requiredPermission: "manage_users",
+        checkRBAC: true,
+        checkMAC: false,
+        checkDAC: false,
+        checkRuBAC: false,
+        checkABAC: false,
+      });
+
+      if (!accessCheck.allowed) {
+        console.error("Users list access denied:", {
+          userId: session.user.id,
+          role: userRole,
+          securityClearance: currentUser.securityClearance,
+          clearanceLevel: currentUser.clearance?.level,
+          clearanceStatus: currentUser.clearance?.status,
+          hasTopSecret: hasTopSecretClearance,
+        });
+        return accessCheck.response || NextResponse.json(
+          { 
+            error: "Access Denied",
+            message: "You need admin role, TOP_SECRET clearance, or manage_users permission to view users list"
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const { searchParams } = new URL(request.url);

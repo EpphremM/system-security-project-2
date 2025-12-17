@@ -131,7 +131,7 @@ export function TimeRuleEditor({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* New Rule Form */}
+        {}
         <div className="border rounded-lg p-4 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -198,7 +198,7 @@ export function TimeRuleEditor({
           </Button>
         </div>
 
-        {/* Existing Rules */}
+        {}
         {rules.length > 0 && (
           <div className="space-y-2">
             <Label>Active Rules</Label>

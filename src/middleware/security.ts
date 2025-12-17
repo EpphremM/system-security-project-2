@@ -136,35 +136,40 @@ function validateRequestBody(body: any): {
   };
 }
 
-/**
- * Add security headers to response
- */
+
 export function addSecurityHeaders(response: NextResponse): NextResponse {
-  // Content Security Policy - Allow hCaptcha
+  
+
   response.headers.set(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hcaptcha.com https://*.hcaptcha.com https://hcaptcha.com; style-src 'self' 'unsafe-inline' https://*.hcaptcha.com https://hcaptcha.com; img-src 'self' data: https: blob: https://*.hcaptcha.com https://hcaptcha.com; font-src 'self' data: https://*.hcaptcha.com; connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://api.hcaptcha.com; frame-src 'self' https://*.hcaptcha.com https://hcaptcha.com;"
   );
 
-  // Strict Transport Security (HSTS)
+  
+
   response.headers.set(
     "Strict-Transport-Security",
     "max-age=31536000; includeSubDomains; preload"
   );
 
-  // X-Content-Type-Options
+  
+
   response.headers.set("X-Content-Type-Options", "nosniff");
 
-  // X-Frame-Options
+  
+
   response.headers.set("X-Frame-Options", "DENY");
 
-  // X-XSS-Protection
+  
+
   response.headers.set("X-XSS-Protection", "1; mode=block");
 
-  // Referrer Policy
+  
+
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  // Permissions Policy
+  
+
   response.headers.set(
     "Permissions-Policy",
     "geolocation=(), microphone=(), camera=()"

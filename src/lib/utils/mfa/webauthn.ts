@@ -92,7 +92,8 @@ export async function verifyWebAuthnRegistration(
 
   const { credentialID, credentialPublicKey, counter } = registrationInfo;
 
-  // Store the device
+  
+
   await prisma.webAuthnDevice.create({
     data: {
       userId,
@@ -107,9 +108,7 @@ export async function verifyWebAuthnRegistration(
   return { verified, credentialID };
 }
 
-/**
- * Generate WebAuthn authentication options
- */
+
 export async function generateWebAuthnAuthenticationOptions(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -136,9 +135,7 @@ export async function generateWebAuthnAuthenticationOptions(userId: string) {
   return options;
 }
 
-/**
- * Verify WebAuthn authentication response
- */
+
 export async function verifyWebAuthnAuthentication(
   userId: string,
   response: AuthenticationResponseJSON,
@@ -180,7 +177,8 @@ export async function verifyWebAuthnAuthentication(
     throw new Error("Authentication verification failed");
   }
 
-  // Update device counter and last used timestamp
+  
+
   await prisma.webAuthnDevice.update({
     where: { id: device.id },
     data: {

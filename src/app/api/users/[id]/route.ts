@@ -15,7 +15,7 @@ const updateUserSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -27,10 +27,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     
     const accessCheck = await checkAccess(request, {
       resourceType: "user",
-      resourceId: params.id,
+      resourceId: id,
       action: "read",
       routePath: "/dashboard/users",
       requiredPermission: "manage_users",
@@ -49,7 +50,7 @@ export async function GET(
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         email: true,
@@ -85,7 +86,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -97,10 +98,11 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     
     const accessCheck = await checkAccess(request, {
       resourceType: "user",
-      resourceId: params.id,
+      resourceId: id,
       action: "write",
       routePath: "/dashboard/users",
       requiredPermission: "manage_users",
@@ -130,7 +132,7 @@ export async function PATCH(
 
     
     const currentUser = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { email: true },
     });
 
@@ -146,7 +148,7 @@ export async function PATCH(
       const existingUser = await prisma.user.findFirst({
         where: {
           email: parsed.data.email,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -160,7 +162,7 @@ export async function PATCH(
 
     
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(parsed.data.name && { name: parsed.data.name }),
         ...(parsed.data.email && { email: parsed.data.email }),
@@ -187,7 +189,7 @@ export async function PATCH(
         logType: "DATA_UPDATE",
         action: "user.updated",
         resource: "user",
-        resourceId: params.id,
+        resourceId: id,
         details: {
           updatedFields: Object.keys(parsed.data),
           updatedBy: session.user.email,
@@ -210,7 +212,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -222,8 +224,9 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     
-    if (session.user.id === params.id) {
+    if (session.user.id === id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
@@ -241,7 +244,7 @@ export async function DELETE(
 
     
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, email: true },
     });
 
@@ -254,7 +257,7 @@ export async function DELETE(
 
     
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     
@@ -265,7 +268,7 @@ export async function DELETE(
         logType: "DATA_DELETE",
         action: "user.deleted",
         resource: "user",
-        resourceId: params.id,
+        resourceId: id,
         details: {
           deletedUserEmail: user.email,
           deletedBy: session.user.email,

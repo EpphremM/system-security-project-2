@@ -96,12 +96,14 @@ export function generateFirewallRules(options: {
     rules.push(`-A INPUT -s ${ip} -j ACCEPT`);
   }
 
-  // Block specific ports
+  
+
   for (const port of options.blockedPorts) {
     rules.push(`-A INPUT -p tcp --dport ${port} -j DROP`);
   }
 
-  // Allow specific ports
+  
+
   for (const port of options.allowedPorts) {
     rules.push(`-A INPUT -p tcp --dport ${port} -j ACCEPT`);
   }
@@ -109,13 +111,12 @@ export function generateFirewallRules(options: {
   return rules.join("\n");
 }
 
-/**
- * DDoS protection configuration
- */
+
 export interface DDoSProtectionConfig {
   maxConnectionsPerIP: number;
   maxRequestsPerMinute: number;
-  blockDuration: number; // seconds
+  blockDuration: number; 
+
   whitelistIPs: string[];
 }
 
@@ -123,7 +124,8 @@ export function getDDoSProtectionConfig(): DDoSProtectionConfig {
   return {
     maxConnectionsPerIP: 10,
     maxRequestsPerMinute: 60,
-    blockDuration: 300, // 5 minutes
+    blockDuration: 300, 
+
     whitelistIPs: process.env.ADMIN_IPS?.split(",") || [],
   };
 }

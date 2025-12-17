@@ -177,9 +177,7 @@ export async function bulkUserOperation(
   };
 }
 
-/**
- * Get access review data
- */
+
 export async function getAccessReviewData(options?: {
   userId?: string;
   department?: string;
@@ -236,7 +234,8 @@ export async function getAccessReviewData(options?: {
   });
 
   const now = new Date();
-  const reviewThreshold = options?.lastReviewBefore || new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000); // 6 months
+  const reviewThreshold = options?.lastReviewBefore || new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000); 
+
 
   const reviewData = users.map((user) => {
     const lastReview = user.roleReviews[0]?.reviewDate;
@@ -268,9 +267,7 @@ export async function getAccessReviewData(options?: {
   };
 }
 
-/**
- * Get compliance reporting data
- */
+
 export async function getComplianceReport(options?: {
   startDate?: Date;
   endDate?: Date;

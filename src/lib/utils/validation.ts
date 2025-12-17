@@ -49,8 +49,11 @@ export const visitorSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone number is required")
-    .refine((val) => validator.isMobilePhone(val, "any"), {
-      message: "Invalid phone number",
+    .refine((val) => {
+      const cleaned = val.replace(/[\s\-\(\)\+]/g, '');
+      return cleaned.length >= 7 && cleaned.length <= 15 && /^\d+$/.test(cleaned);
+    }, {
+      message: "Invalid phone number format",
     }),
   company: z.string().min(1, "Company is required").max(200),
   
@@ -83,9 +86,23 @@ export const visitorSchema = z.object({
   }
 );
 
-export const visitorUpdateSchema = visitorSchema.partial().extend({
-  id: z.string().uuid("Invalid visitor ID"),
-});
+export const visitorUpdateSchema = visitorSchema
+  .partial()
+  .extend({
+    id: z.string().uuid("Invalid visitor ID"),
+  })
+  .refine(
+    (data) => {
+      if (data.scheduledStart && data.scheduledEnd) {
+        return new Date(data.scheduledEnd) > new Date(data.scheduledStart);
+      }
+      return true;
+    },
+    {
+      message: "End time must be after start time",
+      path: ["scheduledEnd"],
+    }
+  );
 
 export const visitorApprovalSchema = z.object({
   visitorId: z.string().uuid("Invalid visitor ID"),

@@ -58,8 +58,20 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Grant permission error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to grant permission";
+    
+    if (errorMessage.includes("permission to share")) {
+      return NextResponse.json(
+        { 
+          error: errorMessage,
+          details: "You need to be an admin, have TOP_SECRET clearance, or have explicit share permissions to share this resource."
+        },
+        { status: 403 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to grant permission" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

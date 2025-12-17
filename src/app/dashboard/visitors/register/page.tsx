@@ -65,7 +65,8 @@ export default function RegisterVisitorPage() {
     setLoading(true);
 
     try {
-      // Get current user session
+      
+
       const sessionResponse = await fetch("/api/auth/session");
       const session = await sessionResponse.json();
 
@@ -74,7 +75,8 @@ export default function RegisterVisitorPage() {
         return;
       }
 
-      // Format dates
+      
+
       const scheduledDate = new Date(data.scheduledDate);
       const scheduledStart = new Date(`${data.scheduledDate}T${data.scheduledStart}`);
       const scheduledEnd = new Date(`${data.scheduledDate}T${data.scheduledEnd}`);
@@ -146,7 +148,8 @@ export default function RegisterVisitorPage() {
                         <Input
                           id="firstName"
                           {...register("firstName")}
-                          placeholder="John"
+                          
+
                           disabled={loading}
                         />
                         {errors.firstName && (
@@ -161,7 +164,8 @@ export default function RegisterVisitorPage() {
                         <Input
                           id="lastName"
                           {...register("lastName")}
-                          placeholder="Doe"
+                          
+
                           disabled={loading}
                         />
                         {errors.lastName && (
@@ -178,7 +182,8 @@ export default function RegisterVisitorPage() {
                         id="email"
                         type="email"
                         {...register("email")}
-                        placeholder="john.doe@example.com"
+                        
+
                         disabled={loading}
                       />
                       {errors.email && (

@@ -142,7 +142,7 @@ export default function AuditLogPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -213,7 +213,7 @@ export default function AuditLogPage() {
         </CardContent>
       </Card>
 
-      {/* Logs Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Audit Logs</CardTitle>

@@ -12,16 +12,10 @@ export function encodeHTML(input: string): string {
   return input.replace(/[&<>"'/]/g, (char) => entityMap[char] || char);
 }
 
-/**
- * Encode HTML attributes
- */
 export function encodeHTMLAttribute(input: string): string {
   return encodeHTML(input).replace(/`/g, "&#96;");
 }
 
-/**
- * Encode JavaScript strings
- */
 export function encodeJavaScript(input: string): string {
   return input
     .replace(/\\/g, "\\\\")
@@ -34,16 +28,10 @@ export function encodeJavaScript(input: string): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
-/**
- * Encode URL parameters
- */
 export function encodeURL(input: string): string {
   return encodeURIComponent(input);
 }
 
-/**
- * Secure JSON serialization (removes sensitive data)
- */
 export function secureJSONSerialize(data: any, options?: {
   removeSensitive?: boolean;
   maxDepth?: number;
@@ -86,24 +74,16 @@ export function secureJSONSerialize(data: any, options?: {
   return JSON.stringify(sanitize(data));
 }
 
-/**
- * Sanitize error message for output
- */
 export function sanitizeErrorMessage(error: Error | unknown): string {
   if (error instanceof Error) {
-    // In production, only show generic error messages
     if (process.env.NODE_ENV === "production") {
       return "An error occurred. Please try again later.";
     }
-    // In development, show full error
     return error.message;
   }
   return "An unknown error occurred";
 }
 
-/**
- * Filter log output to remove sensitive data
- */
 export function filterLogOutput(data: any): any {
   const sensitivePatterns = [
     /password/i,
@@ -122,7 +102,6 @@ export function filterLogOutput(data: any): any {
     }
 
     if (typeof obj === "string") {
-      // Check if string contains sensitive data
       for (const pattern of sensitivePatterns) {
         if (pattern.test(obj)) {
           return "[FILTERED]";
@@ -138,7 +117,6 @@ export function filterLogOutput(data: any): any {
     if (typeof obj === "object") {
       const filtered: any = {};
       for (const [key, value] of Object.entries(obj)) {
-        // Check if key is sensitive
         const isSensitive = sensitivePatterns.some((pattern) => pattern.test(key));
         if (isSensitive) {
           filtered[key] = "[FILTERED]";

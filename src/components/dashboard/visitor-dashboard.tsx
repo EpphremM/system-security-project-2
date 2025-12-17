@@ -170,7 +170,6 @@ export function VisitorDashboard() {
         </Card>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-4">
         <Link href="/dashboard/visitors/register">
           <Button>
@@ -186,7 +185,6 @@ export function VisitorDashboard() {
         </Link>
       </div>
 
-      {/* Recent Visits */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Visits</CardTitle>

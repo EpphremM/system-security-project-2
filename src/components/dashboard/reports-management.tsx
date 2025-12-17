@@ -93,7 +93,7 @@ export function ReportsManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Generate Reports */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Generate Report</CardTitle>
@@ -117,7 +117,7 @@ export function ReportsManagement() {
         </CardContent>
       </Card>
 
-      {/* Report List */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Generated Reports</CardTitle>

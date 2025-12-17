@@ -77,7 +77,8 @@ export const authConfig: NextAuthConfig = {
           throw new Error(`Account locked. Try again in ${accountLockout.retryAfter} seconds.`);
         }
 
-        // Find user with role information
+        
+
         const user = await prisma.user.findUnique({
           where: { email },
           include: {
@@ -86,21 +87,27 @@ export const authConfig: NextAuthConfig = {
         });
 
         if (!user || !user.passwordHash) {
-          // Record failed attempt even if user doesn't exist (prevent user enumeration)
-          // IP will be recorded in API route, use placeholder here
+          
+
+          
+
           await recordFailedLogin(email, "unknown");
           return null;
         }
 
-        // Verify password with Argon2id
+        
+
         const passwordsMatch = await verifyPassword(password, user.passwordHash);
 
         if (!passwordsMatch) {
-          // Record failed login attempt
-          // IP will be recorded in API route
+          
+
+          
+
           await recordFailedLogin(email, "unknown");
           
-          // Log suspicious activity
+          
+
           await prisma.auditLog.create({
             data: {
               userId: user.id,
@@ -117,10 +124,12 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        // Reset failed login attempts on success
+        
+
         await resetFailedLoginAttempts(email);
 
-        // Update last login
+        
+
         await prisma.user.update({
           where: { id: user.id },
           data: {
@@ -128,9 +137,11 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-        // Check if password is expired
+        
+
         if (user.passwordExpiresAt && user.passwordExpiresAt < new Date()) {
-          // Log password expiration
+          
+
           await prisma.auditLog.create({
             data: {
               userId: user.id,

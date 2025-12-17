@@ -22,12 +22,9 @@ console.log("🔗 Database URL:", process.env.DATABASE_URL ? `${process.env.DATA
 async function main() {
   console.log("🌱 Starting database seed...");
   
-  // Test database connection
   try {
     await prisma.$connect();
     console.log("✅ Database connection successful");
-    
-    // Check if users table exists
     const result = await prisma.$queryRaw<Array<{ table_name: string }>>`
       SELECT table_name 
       FROM information_schema.tables 
@@ -70,14 +67,12 @@ async function main() {
     process.exit(1);
   }
 
-  // Common password for all test users
   const testPassword = "Email1@gmail";
   console.log(`🔐 Hashing password: ${testPassword}`);
   const passwordHash = await hashPassword(testPassword);
   console.log("✅ Password hashed successfully");
   const passwordExpiresAt = calculatePasswordExpiration(new Date());
 
-  // Users to create with different roles
   const users = [
     {
       email: "visitor@test.com",
@@ -145,14 +140,12 @@ async function main() {
 
   for (const userData of users) {
     try {
-      // Check if user already exists
       const existing = await prisma.user.findUnique({
         where: { email: userData.email },
       });
 
     if (existing) {
       console.log(`⚠️  User ${userData.email} already exists, updating...`);
-      // Update role and password for existing users
       await prisma.user.update({
         where: { id: existing.id },
         data: {
@@ -167,7 +160,6 @@ async function main() {
       continue;
     }
 
-    // Create new user
     const user = await prisma.user.create({
       data: {
         email: userData.email,

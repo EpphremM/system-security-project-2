@@ -49,7 +49,8 @@ export async function createDigitalAccess(
     encryptedPassword = JSON.stringify(encrypted);
   }
 
-  // Generate web portal token
+  
+
   const webPortalToken = options?.webPortalEnabled !== false
     ? generateSecureToken(32)
     : undefined;
@@ -58,7 +59,8 @@ export async function createDigitalAccess(
     ? `${process.env.NEXTAUTH_URL}/visitor-portal?token=${webPortalToken}`
     : undefined;
 
-  // Calculate expiration (end of visit or 8 hours)
+  
+
   const expiresAt = (() => {
     const end = new Date(visitor.scheduledEnd);
     const maxExpiry = new Date();
@@ -66,7 +68,8 @@ export async function createDigitalAccess(
     return end < maxExpiry ? end : maxExpiry;
   })();
 
-  // Create or update digital access
+  
+
   await prisma.visitorDigitalAccess.upsert({
     where: { visitorId },
     create: {
@@ -78,9 +81,11 @@ export async function createDigitalAccess(
       networkAccessEnabled: options?.networkAccessEnabled !== false,
       allowedIPs: [],
       blockedIPs: [],
-      allowedPorts: [80, 443], // HTTP and HTTPS only
+      allowedPorts: [80, 443], 
+
       blockedPorts: [],
-      bandwidthLimit: options?.bandwidthLimit || 10, // 10 Mbps default
+      bandwidthLimit: options?.bandwidthLimit || 10, 
+
       webPortalEnabled: options?.webPortalEnabled !== false,
       webPortalUrl,
       webPortalToken,
@@ -114,9 +119,7 @@ export async function createDigitalAccess(
   };
 }
 
-/**
- * Revoke digital access
- */
+
 export async function revokeDigitalAccess(visitorId: string): Promise<void> {
   await prisma.visitorDigitalAccess.updateMany({
     where: {
@@ -129,9 +132,7 @@ export async function revokeDigitalAccess(visitorId: string): Promise<void> {
   });
 }
 
-/**
- * Use print quota
- */
+
 export async function usePrintQuota(
   visitorId: string,
   pages: number
@@ -171,9 +172,7 @@ export async function usePrintQuota(
   };
 }
 
-/**
- * Verify web portal token
- */
+
 export async function verifyWebPortalToken(token: string): Promise<{
   valid: boolean;
   visitorId?: string;
@@ -207,9 +206,7 @@ export async function verifyWebPortalToken(token: string): Promise<{
   };
 }
 
-/**
- * Generate secure password
- */
+
 function generateSecurePassword(length: number = 12): string {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   const bytes = randomBytes(length);
@@ -220,9 +217,7 @@ function generateSecurePassword(length: number = 12): string {
   return password;
 }
 
-/**
- * Generate secure token
- */
+
 function generateSecureToken(length: number = 32): string {
   return randomBytes(length).toString("hex");
 }

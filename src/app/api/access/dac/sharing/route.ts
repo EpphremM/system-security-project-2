@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     const linksWithUrls = links.map((link) => ({
       ...link,
       url: `${baseUrl}/share/${link.token}`,
-      token: undefined, // Don't expose full token in list
+      token: undefined, 
+
     }));
 
     return NextResponse.json({

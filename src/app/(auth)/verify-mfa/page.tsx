@@ -205,7 +205,8 @@ export default function VerifyMFAPage() {
                     );
                     const optionsData = await optionsResponse.json();
 
-                    // Use WebAuthn API
+                    
+
                     const credential = await navigator.credentials.get({
                       publicKey: optionsData.options,
                     });
@@ -215,7 +216,8 @@ export default function VerifyMFAPage() {
                       return;
                     }
 
-                    // Verify with server
+                    
+
                     const verifyResponse = await fetch("/api/auth/login/verify-mfa", {
                       method: "POST",
                       headers: {
@@ -237,13 +239,15 @@ export default function VerifyMFAPage() {
                       return;
                     }
 
-                    // Clear stored credentials
+                    
+
                     sessionStorage.removeItem("mfa_email");
                     sessionStorage.removeItem("mfa_password");
                     sessionStorage.removeItem("mfa_userId");
                     sessionStorage.removeItem("mfa_methods");
 
-                    // Redirect to dashboard
+                    
+
                     router.push("/dashboard");
                     router.refresh();
                   } catch (err) {

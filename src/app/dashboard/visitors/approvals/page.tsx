@@ -241,7 +241,7 @@ export default function VisitorApprovalsPage() {
         </div>
       )}
 
-      {/* Action Dialog */}
+      {}
       <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
         <DialogContent>
           <DialogHeader>

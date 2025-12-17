@@ -36,10 +36,16 @@ export default function VisitorsPage() {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "CHECKED_IN" | "CHECKED_OUT">("ALL");
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+  const [sharedVisitors, setSharedVisitors] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"my" | "shared">("my");
 
   useEffect(() => {
-    fetchVisitors();
-  }, [filter]);
+    if (activeTab === "my") {
+      fetchVisitors();
+    } else {
+      fetchSharedVisitors();
+    }
+  }, [filter, activeTab]);
 
   const fetchVisitors = async () => {
     try {
@@ -47,8 +53,12 @@ export default function VisitorsPage() {
       const response = await fetch("/api/visitors/my-visits");
       if (response.ok) {
         const data = await response.json();
+        console.log("Visitors API response:", data);
         
-        const transformedVisitors = (data.recentVisits || []).map((visit: any) => ({
+        const visitsList = data.recentVisits || data.visits || [];
+        console.log("Visitors found:", visitsList.length);
+        
+        const transformedVisitors = visitsList.map((visit: any) => ({
           id: visit.id,
           firstName: visit.firstName || "",
           lastName: visit.lastName || "",
@@ -60,8 +70,15 @@ export default function VisitorsPage() {
           securityLabel: (visit.securityLabel as SecurityLevel) || "PUBLIC",
           scheduledStart: visit.scheduledStart || "",
           scheduledEnd: visit.scheduledEnd || "",
+          hostId: visit.hostId,
+          host: visit.host,
+          canEdit: visit.canEdit !== false,
         }));
         setVisitors(transformedVisitors);
+        console.log("Transformed visitors:", transformedVisitors.length);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to fetch visitors:", errorData);
       }
     } catch (error) {
       console.error("Failed to fetch visitors:", error);
@@ -70,16 +87,31 @@ export default function VisitorsPage() {
     }
   };
 
-  const filteredVisitors = visitors.filter((visitor) => {
+  const fetchSharedVisitors = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/visitors/shared");
+      if (response.ok) {
+        const data = await response.json();
+        setSharedVisitors(data.visitors || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch shared visitors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredVisitors = (activeTab === "my" ? visitors : sharedVisitors).filter((visitor: any) => {
     const matchesSearch =
       searchQuery === "" ||
-      visitor.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      visitor.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      visitor.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      visitor.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       visitor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      visitor.company.toLowerCase().includes(searchQuery.toLowerCase());
+      visitor.company?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter =
-      filter === "ALL" || visitor.status === filter;
+      activeTab === "shared" || filter === "ALL" || visitor.status === filter;
 
     return matchesSearch && matchesFilter;
   });
@@ -118,7 +150,25 @@ export default function VisitorsPage() {
         </Button>
       </div>
 
-      {/* Search and Filters */}
+      {}
+      <div className="flex gap-2 border-b">
+        <Button
+          variant={activeTab === "my" ? "default" : "ghost"}
+          onClick={() => setActiveTab("my")}
+          className="rounded-b-none"
+        >
+          My Visitors
+        </Button>
+        <Button
+          variant={activeTab === "shared" ? "default" : "ghost"}
+          onClick={() => setActiveTab("shared")}
+          className="rounded-b-none"
+        >
+          Shared With Me
+        </Button>
+      </div>
+
+      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4">
@@ -131,28 +181,33 @@ export default function VisitorsPage() {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              {(["ALL", "PENDING", "APPROVED", "CHECKED_IN", "CHECKED_OUT"] as const).map((f) => (
-                <Button
-                  key={f}
-                  variant={filter === f ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilter(f)}
-                >
-                  {f.replace("_", " ")}
-                </Button>
-              ))}
-            </div>
+            {activeTab === "my" && (
+              <div className="flex gap-2">
+                {(["ALL", "PENDING", "APPROVED", "CHECKED_IN", "CHECKED_OUT"] as const).map((f) => (
+                  <Button
+                    key={f}
+                    variant={filter === f ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilter(f)}
+                  >
+                    {f.replace("_", " ")}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Visitors Table */}
+      {}
       <Card>
         <CardHeader>
-          <CardTitle>Visitor List</CardTitle>
+          <CardTitle>
+            {activeTab === "my" ? "My Visitors" : "Shared With Me"}
+          </CardTitle>
           <CardDescription>
             {filteredVisitors.length} visitor{filteredVisitors.length !== 1 ? "s" : ""} found
+            {activeTab === "shared" && " (with shared access)"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -188,13 +243,22 @@ export default function VisitorsPage() {
                     <th className="text-left p-4 font-semibold">Company</th>
                     <th className="text-left p-4 font-semibold">Purpose</th>
                     <th className="text-left p-4 font-semibold">Security</th>
+                    {activeTab === "my" && (
+                      <th className="text-left p-4 font-semibold">Host</th>
+                    )}
+                    {activeTab === "shared" && (
+                      <th className="text-left p-4 font-semibold">Permissions</th>
+                    )}
                     <th className="text-left p-4 font-semibold">Status</th>
                     <th className="text-left p-4 font-semibold">Scheduled</th>
+                    {activeTab === "shared" && (
+                      <th className="text-left p-4 font-semibold">Shared By</th>
+                    )}
                     <th className="text-left p-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredVisitors.map((visitor) => (
+                  {filteredVisitors.map((visitor: any) => (
                     <tr key={visitor.id} className="border-b hover:bg-gray-50">
                       <td className="p-4">
                         {visitor.firstName} {visitor.lastName}
@@ -208,32 +272,79 @@ export default function VisitorsPage() {
                           size="sm"
                         />
                       </td>
+                      {activeTab === "my" && (
+                        <td className="p-4">
+                          <div className="text-sm">
+                            <div className="font-medium">{(visitor as any).host?.name || (visitor as any).host?.email || "Unknown"}</div>
+                            {(visitor as any).host?.email && (
+                              <div className="text-xs text-muted-foreground">{(visitor as any).host.email}</div>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {activeTab === "shared" && (
+                        <td className="p-4">
+                          <div className="flex flex-wrap gap-1">
+                            {visitor.permissions?.read && (
+                              <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">READ</span>
+                            )}
+                            {visitor.permissions?.write && (
+                              <span className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">WRITE</span>
+                            )}
+                            {visitor.permissions?.delete && (
+                              <span className="px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded">DELETE</span>
+                            )}
+                            {visitor.permissions?.share && (
+                              <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded">SHARE</span>
+                            )}
+                            {!visitor.permissions?.read && !visitor.permissions?.write && 
+                             !visitor.permissions?.delete && !visitor.permissions?.share && (
+                              <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">No permissions</span>
+                            )}
+                          </div>
+                        </td>
+                      )}
                       <td className="p-4">{getStatusBadge(visitor.status)}</td>
                       <td className="p-4">
                         {visitor.scheduledStart
                           ? new Date(visitor.scheduledStart).toLocaleDateString()
                           : "-"}
                       </td>
+                      {activeTab === "shared" && (
+                        <td className="p-4">
+                          <div className="text-sm">
+                            <div className="font-medium">{visitor.sharedBy?.name || visitor.sharedBy?.email || "Unknown"}</div>
+                            {visitor.expiresAt && (
+                              <div className="text-xs text-muted-foreground">
+                                Expires: {new Date(visitor.expiresAt).toLocaleDateString()}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => router.push(`/dashboard/visitors/${visitor.id}`)}
+                            disabled={activeTab === "shared" && !visitor.permissions?.read}
                           >
                             View
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedVisitor(visitor);
-                              setShareModalOpen(true);
-                            }}
-                            title="Share visitor record"
-                          >
-                            <Share2 className="h-4 w-4" />
-                          </Button>
+                          {activeTab === "my" && (visitor as any).canEdit && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedVisitor(visitor);
+                                setShareModalOpen(true);
+                              }}
+                              title="Share visitor record"
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -245,7 +356,7 @@ export default function VisitorsPage() {
         </CardContent>
       </Card>
 
-      {/* Share Modal */}
+      {}
       {selectedVisitor && (
         <ShareModal
           open={shareModalOpen}

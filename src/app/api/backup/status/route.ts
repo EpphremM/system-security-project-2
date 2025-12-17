@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       backups: backups.map((b) => ({
         ...b,
+        size: b.size !== null && b.size !== undefined ? b.size.toString() : null,
         createdAt: b.createdAt.toISOString(),
         completedAt: b.completedAt?.toISOString(),
       })),

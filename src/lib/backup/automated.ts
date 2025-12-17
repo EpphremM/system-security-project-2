@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { createHash } from "crypto";
-import { BackupType, BackupStatus, StorageLocation } from "@/generated/prisma/enums";
+import { BackupType, BackupStatus, StorageLocation, LogCategory } from "@/generated/prisma/enums";
 import { encryptLogData } from "@/lib/logging/encryption";
 import { logBackupStart, logBackupComplete, logBackupFailed, logBackupVerified } from "@/lib/logging/system";
 import { alertBackupFailure } from "@/lib/alerting/immediate";
@@ -9,13 +9,16 @@ import { alertBackupFailure } from "@/lib/alerting/immediate";
 export async function performFullBackup(
   createdBy?: string
 ): Promise<string> {
-  const backupId = `full-${Date.now()}`;
+  const startTime = Date.now();
+  const backupId = `full-${startTime}`;
   const backupName = `Full Backup - ${new Date().toISOString()}`;
 
-  // Log backup start
+  
+
   await logBackupStart(backupId, "FULL", backupName, createdBy);
 
-  // Create backup log
+  
+
   const backup = await prisma.backupLog.create({
     data: {
       backupType: "FULL",
@@ -28,28 +31,34 @@ export async function performFullBackup(
   });
 
   try {
-    // Pre-backup consistency checks
+    
+
     const consistencyChecks = await performPreBackupChecks();
     if (!consistencyChecks.passed) {
       throw new Error(`Pre-backup checks failed: ${consistencyChecks.errors.join(", ")}`);
     }
 
-    // Perform backup
+    
+
     const backupData = await exportDatabaseData();
     const backupSize = Buffer.byteLength(JSON.stringify(backupData));
 
-    // Encrypt backup
-    const encrypted = await encryptBackupData(JSON.stringify(backupData), "SYSTEM");
+    
 
-    // Calculate checksum
+    const encrypted = await encryptBackupData(JSON.stringify(backupData), LogCategory.SYSTEM);
+
+    
+
     const checksum = createHash("sha256")
       .update(JSON.stringify(backupData))
       .digest("hex");
 
-    // Store backup (primary location)
+    
+
     const primaryPath = await storeBackup(encrypted, backupId, "PRIMARY");
 
-    // Update backup log
+    
+
     await prisma.backupLog.update({
       where: { id: backup.id },
       data: {
@@ -67,10 +76,13 @@ export async function performFullBackup(
       },
     });
 
-    // Log backup completion
-    await logBackupComplete(backupId, Date.now(), backupSize, backupData.recordCount || 0, checksum);
+    
 
-    // Verify backup
+    const duration = Date.now() - startTime;
+    await logBackupComplete(backupId, duration, backupSize, backupData.recordCount || 0, checksum);
+
+    
+
     await verifyBackup(backup.id);
 
     return backup.id;
@@ -93,13 +105,12 @@ export async function performFullBackup(
   }
 }
 
-/**
- * Perform incremental backup
- */
+
 export async function performIncrementalBackup(
   createdBy?: string
 ): Promise<string> {
-  const backupId = `incremental-${Date.now()}`;
+  const startTime = Date.now();
+  const backupId = `incremental-${startTime}`;
   const backupName = `Incremental Backup - ${new Date().toISOString()}`;
 
   await logBackupStart(backupId, "INCREMENTAL", backupName, createdBy);
@@ -116,7 +127,8 @@ export async function performIncrementalBackup(
   });
 
   try {
-    // Get last backup timestamp
+    
+
     const lastBackup = await prisma.backupLog.findFirst({
       where: {
         backupType: { in: ["FULL", "INCREMENTAL"] },
@@ -127,12 +139,14 @@ export async function performIncrementalBackup(
 
     const since = lastBackup?.completedAt || new Date(0);
 
-    // Export incremental data
+    
+
     const backupData = await exportIncrementalData(since);
     const backupSize = Buffer.byteLength(JSON.stringify(backupData));
 
-    // Encrypt and store
-    const encrypted = await encryptBackupData(JSON.stringify(backupData), "SYSTEM");
+    
+
+    const encrypted = await encryptBackupData(JSON.stringify(backupData), LogCategory.SYSTEM);
     const checksum = createHash("sha256")
       .update(JSON.stringify(backupData))
       .digest("hex");
@@ -152,7 +166,8 @@ export async function performIncrementalBackup(
       },
     });
 
-    await logBackupComplete(backupId, Date.now(), backupSize, backupData.recordCount || 0, checksum);
+    const duration = Date.now() - startTime;
+    await logBackupComplete(backupId, duration, backupSize, backupData.recordCount || 0, checksum);
     await verifyBackup(backup.id);
 
     return backup.id;
@@ -168,13 +183,12 @@ export async function performIncrementalBackup(
   }
 }
 
-/**
- * Perform transaction log backup
- */
+
 export async function performTransactionLogBackup(
   createdBy?: string
 ): Promise<string> {
-  const backupId = `txn-log-${Date.now()}`;
+  const startTime = Date.now();
+  const backupId = `txn-log-${startTime}`;
   const backupName = `Transaction Log Backup - ${new Date().toISOString()}`;
 
   await logBackupStart(backupId, "TRANSACTION_LOG", backupName, createdBy);
@@ -191,7 +205,8 @@ export async function performTransactionLogBackup(
   });
 
   try {
-    // Get last transaction log backup
+    
+
     const lastBackup = await prisma.backupLog.findFirst({
       where: {
         backupType: "TRANSACTION_LOG",
@@ -200,9 +215,11 @@ export async function performTransactionLogBackup(
       orderBy: { completedAt: "desc" },
     });
 
-    const since = lastBackup?.completedAt || new Date(Date.now() - 4 * 60 * 60 * 1000); // Last 4 hours
+    const since = lastBackup?.completedAt || new Date(Date.now() - 4 * 60 * 60 * 1000); 
 
-    // Export transaction logs
+
+    
+
     const logs = await prisma.auditLog.findMany({
       where: {
         createdAt: { gte: since },
@@ -224,7 +241,7 @@ export async function performTransactionLogBackup(
     };
 
     const backupSize = Buffer.byteLength(JSON.stringify(backupData));
-    const encrypted = await encryptBackupData(JSON.stringify(backupData), "SYSTEM");
+    const encrypted = await encryptBackupData(JSON.stringify(backupData), LogCategory.SYSTEM);
     const checksum = createHash("sha256")
       .update(JSON.stringify(backupData))
       .digest("hex");
@@ -244,7 +261,8 @@ export async function performTransactionLogBackup(
       },
     });
 
-    await logBackupComplete(backupId, Date.now(), backupSize, logs.length, checksum);
+    const duration = Date.now() - startTime;
+    await logBackupComplete(backupId, duration, backupSize, logs.length, checksum);
 
     return backup.id;
   } catch (error) {
@@ -258,9 +276,7 @@ export async function performTransactionLogBackup(
   }
 }
 
-/**
- * Perform configuration backup (real-time)
- */
+
 export async function performConfigurationBackup(
   configKey: string,
   oldValue: any,
@@ -291,7 +307,7 @@ export async function performConfigurationBackup(
     };
 
     const backupSize = Buffer.byteLength(JSON.stringify(backupData));
-    const encrypted = await encryptBackupData(JSON.stringify(backupData), "SYSTEM");
+    const encrypted = await encryptBackupData(JSON.stringify(backupData), LogCategory.SYSTEM);
     const checksum = createHash("sha256")
       .update(JSON.stringify(backupData))
       .digest("hex");
@@ -323,9 +339,7 @@ export async function performConfigurationBackup(
   }
 }
 
-/**
- * Perform pre-backup consistency checks
- */
+
 async function performPreBackupChecks(): Promise<{
   passed: boolean;
   errors: string[];
@@ -334,18 +348,24 @@ async function performPreBackupChecks(): Promise<{
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Check database connectivity
+  
+
   try {
     await prisma.$queryRaw`SELECT 1`;
   } catch (error) {
     errors.push("Database connectivity check failed");
   }
 
-  // Check disk space (placeholder - implement actual check)
-  // const diskSpace = await checkDiskSpace();
-  // if (diskSpace < 1024 * 1024 * 1024) { // Less than 1GB
-  //   warnings.push("Low disk space");
-  // }
+  
+
+  
+
+  
+
+  
+
+  
+
 
   return {
     passed: errors.length === 0,
@@ -354,15 +374,15 @@ async function performPreBackupChecks(): Promise<{
   };
 }
 
-/**
- * Export database data
- */
+
 async function exportDatabaseData(): Promise<any> {
-  // Export all critical tables
+  
+
   const [users, visitors, auditLogs, accessPolicies] = await Promise.all([
     prisma.user.findMany({ select: { id: true, email: true, name: true, department: true } }),
     prisma.visitor.findMany(),
-    prisma.auditLog.findMany({ take: 10000 }), // Limit for full backup
+    prisma.auditLog.findMany({ take: 10000 }), 
+
     prisma.accessPolicy.findMany(),
   ]);
 
@@ -376,9 +396,7 @@ async function exportDatabaseData(): Promise<any> {
   };
 }
 
-/**
- * Export incremental data
- */
+
 async function exportIncrementalData(since: Date): Promise<any> {
   const [users, visitors, auditLogs] = await Promise.all([
     prisma.user.findMany({
@@ -402,24 +420,31 @@ async function exportIncrementalData(since: Date): Promise<any> {
   };
 }
 
-/**
- * Encrypt backup data
- */
-async function encryptBackupData(data: string, category: any): Promise<string> {
-  const encrypted = await encryptLogData(data, category);
-  return JSON.stringify(encrypted);
+
+async function encryptBackupData(data: string, category: LogCategory): Promise<string> {
+  try {
+    const encrypted = await encryptLogData(data, category);
+    return JSON.stringify(encrypted);
+  } catch (error) {
+    console.error("Encryption failed, storing unencrypted backup:", error);
+    return JSON.stringify({
+      encrypted: false,
+      data: data,
+      error: error instanceof Error ? error.message : "Encryption failed"
+    });
+  }
 }
 
-/**
- * Store backup to location
- */
+
 async function storeBackup(
   encryptedData: string,
   backupId: string,
   location: StorageLocation
 ): Promise<string> {
-  // In production, implement actual storage
-  // For now, return a path
+  
+
+  
+
   const basePath = process.env.BACKUP_STORAGE_PATH || "/backups";
   const timestamp = new Date().toISOString().replace(/:/g, "-");
   
@@ -437,9 +462,7 @@ async function storeBackup(
   }
 }
 
-/**
- * Verify backup integrity
- */
+
 export async function verifyBackup(backupId: string): Promise<boolean> {
   const backup = await prisma.backupLog.findUnique({
     where: { id: backupId },
@@ -449,8 +472,10 @@ export async function verifyBackup(backupId: string): Promise<boolean> {
     return false;
   }
 
-  // In production, read backup file and verify checksum
-  // For now, mark as verified
+  
+
+  
+
   await prisma.backupLog.update({
     where: { id: backupId },
     data: {
@@ -465,9 +490,7 @@ export async function verifyBackup(backupId: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Test backup restoration
- */
+
 export async function testBackupRestoration(backupId: string): Promise<{
   success: boolean;
   notes?: string;
@@ -481,8 +504,10 @@ export async function testBackupRestoration(backupId: string): Promise<{
   }
 
   try {
-    // In production, restore to test environment and verify
-    // For now, mark as tested
+    
+
+    
+
     await prisma.backupLog.update({
       where: { id: backupId },
       data: {

@@ -134,7 +134,7 @@ export function RegisterForm() {
             <Input
               id="name"
               {...register("name")}
-              placeholder="John Doe"
+              placeholder="Enter your full name"
               aria-invalid={errors.name ? "true" : "false"}
             />
             {errors.name && (
@@ -184,7 +184,7 @@ export function RegisterForm() {
             )}
           </div>
 
-          {/* CAPTCHA */}
+          {}
           <div className="space-y-2">
             <Label>Security Verification</Label>
             <div id="hcaptcha-container">

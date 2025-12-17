@@ -48,23 +48,19 @@ export function validatePasswordPolicy(password: string): PasswordPolicyResult {
     errors.push("Password must contain at least one special character");
   }
 
-  // Dictionary attack prevention
   const lowerPassword = password.toLowerCase();
   if (COMMON_PASSWORDS.some(common => lowerPassword.includes(common))) {
     errors.push("Password contains common words or patterns");
   }
 
-  // Check for repeated characters (e.g., "aaaaaa")
   if (/(.)\1{3,}/.test(password)) {
     warnings.push("Password contains repeated characters");
   }
 
-  // Check for sequential characters (e.g., "12345", "abcde")
   if (/01234|12345|23456|34567|45678|56789|abcdef|bcdefg|cdefgh|defghi|efghij|fghijk|ghijkl|hijklm|ijklmn|jklmno|klmnop|lmnopq|mnopqr|nopqrs|opqrst|pqrstu|qrstuv|rstuvw|stuvwx|tuvwxy|uvwxyz/i.test(password)) {
     warnings.push("Password contains sequential characters");
   }
 
-  // Check password strength with zxcvbn
   const strength = zxcvbn(password);
   if (strength.score < 3) {
     warnings.push("Password strength is weak. Consider using a stronger password.");
@@ -77,9 +73,6 @@ export function validatePasswordPolicy(password: string): PasswordPolicyResult {
   };
 }
 
-/**
- * Password policy schema for Zod validation
- */
 export const passwordPolicySchema = z
   .string()
   .min(12, "Password must be at least 12 characters")
@@ -102,9 +95,6 @@ export const passwordPolicySchema = z
     { message: "Password is too weak" }
   );
 
-/**
- * Check if password is expired (90 days)
- */
 export function isPasswordExpired(passwordChangedAt: Date | null): boolean {
   if (!passwordChangedAt) return false;
   
@@ -115,17 +105,11 @@ export function isPasswordExpired(passwordChangedAt: Date | null): boolean {
   return age > maxAge;
 }
 
-/**
- * Calculate password expiration date
- */
 export function calculatePasswordExpiration(passwordChangedAt: Date): Date {
   const maxAge = 90 * 24 * 60 * 60 * 1000; // 90 days
   return new Date(passwordChangedAt.getTime() + maxAge);
 }
 
-/**
- * Get days until password expires
- */
 export function getDaysUntilExpiration(passwordExpiresAt: Date | null): number | null {
   if (!passwordExpiresAt) return null;
   
@@ -135,6 +119,7 @@ export function getDaysUntilExpiration(passwordExpiresAt: Date | null): number |
   
   return days > 0 ? days : 0;
 }
+
 
 
 

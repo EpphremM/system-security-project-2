@@ -247,13 +247,12 @@ export async function generateDataAccessAuditTrailReport(options?: {
       ...data,
       uniqueUsers: Array.from(data.uniqueUsers),
     })),
-    rawLogs: accessLogs.slice(0, 1000), // Limit to 1000 most recent
+    rawLogs: accessLogs.slice(0, 1000), 
+
   };
 }
 
-/**
- * Generate policy compliance report
- */
+
 export async function generatePolicyComplianceReport(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -272,7 +271,8 @@ export async function generatePolicyComplianceReport(options?: {
     where.resource = "access_policy";
   }
 
-  // Get policy violations
+  
+
   const violations = await prisma.auditLog.findMany({
     where: {
       ...where,
@@ -286,7 +286,8 @@ export async function generatePolicyComplianceReport(options?: {
     orderBy: { createdAt: "desc" },
   });
 
-  // Get policy evaluations
+  
+
   const evaluations = await prisma.auditLog.findMany({
     where: {
       ...where,
@@ -300,7 +301,8 @@ export async function generatePolicyComplianceReport(options?: {
     },
   });
 
-  // Get all policies
+  
+
   const policiesWhere: any = {};
   if (options?.policyId) policiesWhere.id = options.policyId;
   if (options?.policyType) policiesWhere.policyType = options.policyType;
@@ -314,7 +316,8 @@ export async function generatePolicyComplianceReport(options?: {
     },
   });
 
-  // Calculate compliance per policy
+  
+
   const policyCompliance = policies.map((policy) => {
     const policyViolations = violations.filter(
       (v) => v.policyId === policy.id

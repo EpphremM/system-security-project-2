@@ -104,7 +104,8 @@ export async function checkAccess(
       }
     }
 
-    // Check specific permission if required
+    
+
     if (options.requiredPermission) {
       const hasPerm = hasPermission(userRole, options.requiredPermission);
       if (!hasPerm) {
@@ -113,8 +114,14 @@ export async function checkAccess(
       }
     }
 
-      // Also check database RBAC permissions (if resource and action provided)
-    if (rbacAllowed && options.resourceType && options.action && options.resourceId) {
+    
+
+    
+
+    
+
+    const rolesWithLegacyPermissions = ["ADMIN", "HR", "SUPER_ADMIN", "IT_ADMIN"];
+    if (rbacAllowed && options.resourceType && options.action && options.resourceId && !rolesWithLegacyPermissions.includes(userRole)) {
       try {
         const dbPermission = await userHasPermission(
           userId,
@@ -126,7 +133,8 @@ export async function checkAccess(
           rbacReason = `User does not have ${options.action} permission on ${options.resourceType}`;
         }
       } catch (error) {
-        // If RBAC check fails, log but don't block (graceful degradation)
+        
+
         console.warn("RBAC permission check failed:", error);
       }
     }
@@ -156,7 +164,8 @@ export async function checkAccess(
     }
   }
 
-  // 2. MAC (Mandatory Access Control) - Check security clearance
+  
+
   if (options.checkMAC && options.resourceId) {
     const macResult = await enforceMAC(
       request,
@@ -185,7 +194,8 @@ export async function checkAccess(
     }
   }
 
-  // 3. DAC (Discretionary Access Control) - Check ownership/sharing
+  
+
   if (options.checkDAC && options.resourceId) {
     const dacResult = await enforceDAC(
       request,
@@ -212,7 +222,8 @@ export async function checkAccess(
     }
   }
 
-  // 4. RuBAC (Rule-Based Access Control) - Check time/location/device rules
+  
+
   if (options.checkRuBAC && options.resourceId) {
     const rubacResult = await enforceRuBAC(
       request,
@@ -239,7 +250,8 @@ export async function checkAccess(
     }
   }
 
-  // 5. ABAC (Attribute-Based Access Control) - Check attribute policies
+  
+
   if (options.checkABAC && options.resourceId) {
     const abacResult = await enforceABAC(
       request,
@@ -267,16 +279,15 @@ export async function checkAccess(
     }
   }
 
-  // All checks passed
+  
+
   return {
     allowed: true,
     checkedMechanisms,
   };
 }
 
-/**
- * Helper to check access for API routes
- */
+
 export async function requireAccess(
   request: NextRequest,
   options: AccessControlOptions
@@ -290,12 +301,11 @@ export async function requireAccess(
     );
   }
   
-  return null; // Access granted
+  return null; 
+
 }
 
-/**
- * Helper to get user's effective permissions
- */
+
 export async function getUserEffectivePermissions(userId: string): Promise<{
   role: Role;
   permissions: string[];
@@ -313,14 +323,16 @@ export async function getUserEffectivePermissions(userId: string): Promise<{
 
   const userRole = (session.user.role as Role) || "USER";
   
-  // Get permissions from ROLE_PERMISSIONS
+  
+
   const { ROLE_PERMISSIONS } = await import("@/lib/auth/roles");
   const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
   const permissions = rolePermissions.includes("*") 
     ? ["*"] 
     : rolePermissions;
 
-  // Get MAC clearance
+  
+
   let clearance;
   try {
     const { getUserClearance } = await import("@/lib/access/mac");
@@ -332,10 +344,12 @@ export async function getUserEffectivePermissions(userId: string): Promise<{
       };
     }
   } catch (error) {
-    // Clearance not set
+    
+
   }
 
-  // Check if trusted subject
+  
+
   const { isTrustedSubject } = await import("@/middleware/mac");
   const isTrusted = await isTrustedSubject(userId);
 

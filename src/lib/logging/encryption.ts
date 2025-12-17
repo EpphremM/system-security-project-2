@@ -74,9 +74,7 @@ async function createNewKey(category: LogCategory) {
   });
 }
 
-/**
- * Encrypt log data
- */
+
 export async function encryptLogData(
   data: string,
   category: LogCategory
@@ -95,7 +93,8 @@ export async function encryptLogData(
   encrypted += cipher.final("hex");
   const tag = cipher.getAuthTag();
 
-  // Update key usage
+  
+
   const activeKey = await prisma.encryptionKey.findFirst({
     where: {
       category,
@@ -121,16 +120,15 @@ export async function encryptLogData(
   };
 }
 
-/**
- * Decrypt log data
- */
+
 export async function decryptLogData(
   encrypted: string,
   iv: string,
   tag: string,
   keyId: string
 ): Promise<string> {
-  // Find key
+  
+
   const keyRecord = await prisma.encryptionKey.findUnique({
     where: { keyId },
   });
@@ -139,7 +137,8 @@ export async function decryptLogData(
     throw new Error(`Encryption key not found: ${keyId}`);
   }
 
-  // Decrypt key material
+  
+
   const key = decryptKeyMaterial(keyRecord.keyMaterial);
   const keyBuffer = Buffer.from(key, "hex");
   const ivBuffer = Buffer.from(iv, "hex");
@@ -154,9 +153,7 @@ export async function decryptLogData(
   return decrypted;
 }
 
-/**
- * Encrypt key material with master key
- */
+
 function encryptKeyMaterial(keyMaterial: string): string {
   const masterKey = Buffer.from(MASTER_KEY.substring(0, KEY_LENGTH * 2), "hex");
   const iv = randomBytes(IV_LENGTH);
@@ -166,37 +163,59 @@ function encryptKeyMaterial(keyMaterial: string): string {
   encrypted += cipher.final("hex");
   const tag = cipher.getAuthTag();
 
-  // Combine IV, tag, and encrypted data
+  
+
   return `${iv.toString("hex")}:${tag.toString("hex")}:${encrypted}`;
 }
 
-/**
- * Decrypt key material with master key
- */
+
 function decryptKeyMaterial(encrypted: string): string {
-  const [ivHex, tagHex, encryptedData] = encrypted.split(":");
-  const masterKey = Buffer.from(MASTER_KEY.substring(0, KEY_LENGTH * 2), "hex");
-  const iv = Buffer.from(ivHex, "hex");
-  const tag = Buffer.from(tagHex, "hex");
+  try {
+    if (!encrypted || !encrypted.includes(":")) {
+      throw new Error("Invalid encrypted key material format");
+    }
 
-  const decipher = createDecipheriv(ALGORITHM, masterKey, iv);
-  decipher.setAuthTag(tag);
+    const parts = encrypted.split(":");
+    if (parts.length !== 3) {
+      throw new Error("Invalid encrypted key material format: expected 3 parts");
+    }
 
-  let decrypted = decipher.update(encryptedData, "hex", "utf8");
-  decrypted += decipher.final("utf8");
+    const [ivHex, tagHex, encryptedData] = parts;
+    
+    if (!MASTER_KEY || MASTER_KEY.length < KEY_LENGTH * 2) {
+      throw new Error("Master key is not properly configured");
+    }
 
-  return decrypted;
+    const masterKey = Buffer.from(MASTER_KEY.substring(0, KEY_LENGTH * 2), "hex");
+    const iv = Buffer.from(ivHex, "hex");
+    const tag = Buffer.from(tagHex, "hex");
+
+    if (iv.length !== IV_LENGTH || tag.length !== TAG_LENGTH) {
+      throw new Error("Invalid IV or tag length");
+    }
+
+    const decipher = createDecipheriv(ALGORITHM, masterKey, iv);
+    decipher.setAuthTag(tag);
+
+    let decrypted = decipher.update(encryptedData, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+
+    return decrypted;
+  } catch (error) {
+    console.error("Failed to decrypt key material:", error);
+    throw new Error(`Key material decryption failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
-/**
- * Rotate encryption keys (should be run as scheduled job)
- */
+
 export async function rotateKeys() {
   const now = new Date();
   const rotationThreshold = new Date();
-  rotationThreshold.setDate(rotationThreshold.getDate() - 83); // 7 days before expiration
+  rotationThreshold.setDate(rotationThreshold.getDate() - 83); 
 
-  // Find keys that need rotation
+
+  
+
   const keysToRotate = await prisma.encryptionKey.findMany({
     where: {
       isActive: true,
@@ -218,12 +237,12 @@ export async function rotateKeys() {
   };
 }
 
-/**
- * HSM integration placeholder (for future HSM implementation)
- */
+
 export async function getHSMKey(keyId: string): Promise<Buffer> {
-  // In production, this would interface with HSM
-  // For now, return error indicating HSM not configured
+  
+
+  
+
   throw new Error("HSM not configured. Use software key management.");
 }
 

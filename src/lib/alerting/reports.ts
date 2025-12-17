@@ -306,9 +306,7 @@ function generateRecommendations(riskScore: number, anomalies: any[]): string[] 
   return recommendations;
 }
 
-/**
- * Execute scheduled report
- */
+
 export async function executeScheduledReport(
   reportId: string
 ): Promise<string> {
@@ -320,7 +318,8 @@ export async function executeScheduledReport(
     throw new Error("Report not found or disabled");
   }
 
-  // Create execution record
+  
+
   const execution = await prisma.reportExecution.create({
     data: {
       reportId,
@@ -329,7 +328,8 @@ export async function executeScheduledReport(
   });
 
   try {
-    // Generate report based on type
+    
+
     let reportData: any;
 
     switch (report.reportType) {
@@ -349,15 +349,18 @@ export async function executeScheduledReport(
         throw new Error(`Unknown report type: ${report.reportType}`);
     }
 
-    // Format report
+    
+
     const formattedReport = formatReport(reportData, report.format);
 
-    // Send to recipients
+    
+
     for (const recipient of report.recipients) {
       await sendReportEmail(recipient, report.reportType, formattedReport);
     }
 
-    // Update execution
+    
+
     await prisma.reportExecution.update({
       where: { id: execution.id },
       data: {
@@ -367,7 +370,8 @@ export async function executeScheduledReport(
       },
     });
 
-    // Update report next run time
+    
+
     const nextRunAt = calculateNextRunTime(report.frequency);
     await prisma.scheduledReport.update({
       where: { id: reportId },
@@ -392,9 +396,7 @@ export async function executeScheduledReport(
   }
 }
 
-/**
- * Format report
- */
+
 function formatReport(data: any, format: string): string {
   switch (format) {
     case "JSON":
@@ -402,24 +404,22 @@ function formatReport(data: any, format: string): string {
     case "CSV":
       return formatAsCSV(data);
     case "PDF":
-      // For PDF, return HTML that can be converted to PDF
+      
+
       return formatAsHTML(data);
     default:
       return JSON.stringify(data, null, 2);
   }
 }
 
-/**
- * Format as CSV
- */
+
 function formatAsCSV(data: any): string {
-  // Simple CSV formatting
+  
+
   return JSON.stringify(data);
 }
 
-/**
- * Format as HTML
- */
+
 function formatAsHTML(data: any): string {
   return `
     <!DOCTYPE html>
@@ -441,9 +441,7 @@ function formatAsHTML(data: any): string {
   `;
 }
 
-/**
- * Send report email
- */
+
 async function sendReportEmail(
   recipient: string,
   reportType: ReportType,
@@ -459,9 +457,7 @@ async function sendReportEmail(
   await sendEmail(recipient, subject, html);
 }
 
-/**
- * Calculate next run time
- */
+
 function calculateNextRunTime(frequency: ReportFrequency): Date {
   const next = new Date();
 

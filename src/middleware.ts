@@ -18,19 +18,21 @@ async function edgeRateLimit(
   const key = `${endpoint}:${ip}`;
   const now = Date.now();
 
-  // Get limits based on endpoint
+  
+
   const limits: Record<string, { points: number; duration: number }> = {
-    default: { points: 100, duration: 60000 },
-    auth: { points: 5, duration: 60000 },
-    sensitive: { points: 10, duration: 60000 },
-    public: { points: 1000, duration: 60000 },
-  };
+    default: { points: 100, duration: 600 },
+    auth: { points: 15, duration: 600 },
+    sensitive: { points: 10, duration: 600 },
+    public: { points: 1000, duration: 600 },
+  };1
 
   const limit = limits[endpoint] || limits.default;
   const record = rateLimiters.get(key);
 
   if (!record || now > record.resetAt) {
-    // Reset or create new record
+    
+
     rateLimiters.set(key, {
       count: 1,
       resetAt: now + limit.duration,
@@ -39,6 +41,8 @@ async function edgeRateLimit(
   }
 
   if (record.count >= limit.points) {
+    
+
     const retryAfter = Math.ceil((record.resetAt - now) / 1000);
     return {
       allowed: false,
@@ -61,7 +65,6 @@ async function edgeRateLimit(
     };
   }
 
-  // Increment count
   record.count++;
   rateLimiters.set(key, record);
 
@@ -71,10 +74,12 @@ async function edgeRateLimit(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Network security checks
+  
+
   const ip = request.ip ?? request.headers.get("x-forwarded-for") ?? "unknown";
   
-  // IP whitelisting for admin interfaces
+  
+
   if (pathname.startsWith("/api/admin") || pathname.startsWith("/admin")) {
     const adminIPs = process.env.ADMIN_IPS?.split(",") || [];
     if (adminIPs.length > 0 && !isIPWhitelisted(ip, adminIPs)) {
@@ -85,7 +90,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Geo-blocking for high-risk countries
+  
+
   const blockedCountries = process.env.BLOCKED_COUNTRIES?.split(",") || [];
   if (blockedCountries.length > 0) {
     const isBlocked = await isCountryBlocked(ip, blockedCountries);
@@ -97,9 +103,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Rate limiting for API routes
+  
+
   if (pathname.startsWith("/api/")) {
-    // Determine endpoint type for rate limiting
+    
+
     let endpoint = "default";
     if (pathname.startsWith("/api/auth")) {
       endpoint = "auth";
@@ -115,7 +123,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Security headers
+  
+
   const response = NextResponse.next();
   addSecurityHeaders(response);
 
@@ -124,13 +133,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
+    
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

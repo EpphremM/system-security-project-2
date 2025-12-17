@@ -75,10 +75,12 @@ export async function preRegisterVisitor(
     },
   });
 
-  // Create approval request
+  
+
   await createApprovalRequest(visitor.id, data.hostId);
 
-  // Log registration
+  
+
   await logVisitorAction(visitor.id, "CREATED", undefined, "Pre-registration completed");
 
   return {
@@ -88,9 +90,7 @@ export async function preRegisterVisitor(
   };
 }
 
-/**
- * Create approval request
- */
+
 async function createApprovalRequest(visitorId: string, hostId: string): Promise<string> {
   const visitor = await prisma.visitor.findUnique({
     where: { id: visitorId },
@@ -101,7 +101,8 @@ async function createApprovalRequest(visitorId: string, hostId: string): Promise
     throw new Error("Visitor not found");
   }
 
-  // Check if security clearance is required
+  
+
   const requiresSecurityClearance = visitor.securityLabel !== "PUBLIC";
 
   const request = await prisma.visitorApprovalRequest.create({
@@ -114,15 +115,14 @@ async function createApprovalRequest(visitorId: string, hostId: string): Promise
     },
   });
 
-  // Send notification email to host
+  
+
   await notifyHostForApproval(visitor, request.id);
 
   return request.id;
 }
 
-/**
- * Notify host for approval
- */
+
 async function notifyHostForApproval(visitor: any, requestId: string): Promise<void> {
   const host = await prisma.user.findUnique({
     where: { id: visitor.hostId },
@@ -157,9 +157,7 @@ async function notifyHostForApproval(visitor: any, requestId: string): Promise<v
   });
 }
 
-/**
- * Approve visitor
- */
+
 export async function approveVisitor(
   requestId: string,
   approvedBy: string,
@@ -185,10 +183,12 @@ export async function approveVisitor(
     throw new Error("Request is not pending approval");
   }
 
-  // Check security clearance if required
+  
+
   if (request.requiresSecurityClearance && !request.securityClearanceChecked) {
     if (options?.checkSecurityClearance) {
-      // Perform security clearance check
+      
+
       const clearanceResult = await checkSecurityClearance(request.visitor);
       await prisma.visitorApprovalRequest.update({
         where: { id: requestId },
@@ -206,15 +206,19 @@ export async function approveVisitor(
     }
   }
 
-  // Generate QR code
+  
+
   const qrCode = await generateQRCode(request.visitor.id);
   const qrCodeExpiresAt = new Date(request.visitor.scheduledEnd);
-  qrCodeExpiresAt.setHours(qrCodeExpiresAt.getHours() + 2); // 2 hours after scheduled end
+  qrCodeExpiresAt.setHours(qrCodeExpiresAt.getHours() + 2); 
 
-  // Generate badge number
+
+  
+
   const badgeNumber = `BADGE-${Date.now()}-${request.visitor.id.substring(0, 8).toUpperCase()}`;
 
-  // Update visitor
+  
+
   await prisma.visitor.update({
     where: { id: request.visitor.id },
     data: {
@@ -227,7 +231,8 @@ export async function approveVisitor(
     },
   });
 
-  // Update approval request
+  
+
   await prisma.visitorApprovalRequest.update({
     where: { id: requestId },
     data: {
@@ -237,7 +242,8 @@ export async function approveVisitor(
     },
   });
 
-  // Log approval
+  
+
   await logVisitorAction(request.visitor.id, "APPROVED", approvedBy, options?.notes);
 
   return {
@@ -247,9 +253,7 @@ export async function approveVisitor(
   };
 }
 
-/**
- * Reject visitor
- */
+
 export async function rejectVisitor(
   requestId: string,
   rejectedBy: string,
@@ -264,7 +268,8 @@ export async function rejectVisitor(
     throw new Error("Approval request not found");
   }
 
-  // Update visitor
+  
+
   await prisma.visitor.update({
     where: { id: request.visitor.id },
     data: {
@@ -272,7 +277,8 @@ export async function rejectVisitor(
     },
   });
 
-  // Update approval request
+  
+
   await prisma.visitorApprovalRequest.update({
     where: { id: requestId },
     data: {
@@ -283,13 +289,12 @@ export async function rejectVisitor(
     },
   });
 
-  // Log rejection
+  
+
   await logVisitorAction(request.visitor.id, "REJECTED", rejectedBy, reason);
 }
 
-/**
- * Escalate approval request
- */
+
 export async function escalateApprovalRequest(
   requestId: string,
   departmentHeadId: string,
@@ -304,7 +309,8 @@ export async function escalateApprovalRequest(
     throw new Error("Approval request not found");
   }
 
-  // Get department head
+  
+
   const departmentHead = await prisma.user.findUnique({
     where: { id: departmentHeadId },
   });
@@ -313,7 +319,8 @@ export async function escalateApprovalRequest(
     throw new Error("Department head not found");
   }
 
-  // Update request
+  
+
   await prisma.visitorApprovalRequest.update({
     where: { id: requestId },
     data: {
@@ -324,7 +331,8 @@ export async function escalateApprovalRequest(
     },
   });
 
-  // Update visitor
+  
+
   await prisma.visitor.update({
     where: { id: request.visitor.id },
     data: {
@@ -333,7 +341,8 @@ export async function escalateApprovalRequest(
     },
   });
 
-  // Notify department head
+  
+
   if (departmentHead.email) {
     await sendEmail(
       departmentHead.email,
@@ -356,9 +365,7 @@ export async function escalateApprovalRequest(
   });
 }
 
-/**
- * Bulk approve group visit
- */
+
 export async function bulkApproveGroupVisit(
   groupId: string,
   approvedBy: string
@@ -398,9 +405,7 @@ export async function bulkApproveGroupVisit(
   };
 }
 
-/**
- * Generate QR code for visitor
- */
+
 async function generateQRCode(visitorId: string): Promise<string> {
   const data = {
     visitorId,
@@ -411,27 +416,29 @@ async function generateQRCode(visitorId: string): Promise<string> {
   const qrData = JSON.stringify(data);
   const qrCode = await QRCode.toDataURL(qrData);
 
-  // Store hash of QR code data for verification
+  
+
   const qrHash = createHash("sha256").update(qrData).digest("hex");
 
-  return qrHash; // Return hash, actual QR code generated on-demand
+  return qrHash; 
+
 }
 
-/**
- * Check security clearance
- */
+
 async function checkSecurityClearance(visitor: any): Promise<boolean> {
-  // In production, implement actual security clearance check
-  // For now, return true for non-restricted visitors
+  
+
+  
+
   return visitor.securityLabel !== "TOP_SECRET";
 }
 
-/**
- * Verify CAPTCHA
- */
+
 async function verifyCAPTCHA(token: string): Promise<boolean> {
-  // In production, verify with hCaptcha or reCAPTCHA
-  // For now, return true if token is provided
+  
+
+  
+
   return !!token;
 }
 

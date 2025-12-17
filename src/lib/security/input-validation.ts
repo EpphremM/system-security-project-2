@@ -13,9 +13,6 @@ export function sanitizeSQLInput(input: string): string {
     .trim();
 }
 
-/**
- * Validate and sanitize string input
- */
 export function validateStringInput(
   input: string,
   options?: {
@@ -29,13 +26,9 @@ export function validateStringInput(
   sanitized?: string;
   error?: string;
 } {
-  // Basic sanitization
   let sanitized = input.trim();
 
-  // SQL injection prevention
   sanitized = sanitizeSQLInput(sanitized);
-
-  // Length validation
   if (options?.minLength && sanitized.length < options.minLength) {
     return {
       valid: false,
@@ -50,7 +43,6 @@ export function validateStringInput(
     };
   }
 
-  // Pattern validation
   if (options?.pattern && !options.pattern.test(sanitized)) {
     return {
       valid: false,
@@ -64,9 +56,6 @@ export function validateStringInput(
   };
 }
 
-/**
- * Prevent XSS attacks by encoding HTML entities
- */
 export function encodeHTML(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -74,7 +63,6 @@ export function encodeHTML(input: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#x27;")
-    .replace(/\
 }
 
 
@@ -103,7 +91,8 @@ export function validateFileUpload(
     };
   }
 
-  // Type validation
+  
+
   if (options?.allowedTypes && !options.allowedTypes.includes(file.type)) {
     return {
       valid: false,
@@ -111,7 +100,8 @@ export function validateFileUpload(
     };
   }
 
-  // Extension validation
+  
+
   if (options?.allowedExtensions) {
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!extension || !options.allowedExtensions.includes(extension)) {
@@ -122,7 +112,8 @@ export function validateFileUpload(
     }
   }
 
-  // Basic malware scanning (check for suspicious patterns)
+  
+
   if (options?.scanForMalware && file.content) {
     const suspiciousPatterns = [
       /<script/i,
@@ -147,9 +138,7 @@ export function validateFileUpload(
   return { valid: true };
 }
 
-/**
- * Validate email input
- */
+
 export function validateEmail(email: string): {
   valid: boolean;
   sanitized?: string;
@@ -164,7 +153,8 @@ export function validateEmail(email: string): {
     };
   }
 
-  // Additional checks
+  
+
   if (sanitized.length > 254) {
     return {
       valid: false,
@@ -178,9 +168,7 @@ export function validateEmail(email: string): {
   };
 }
 
-/**
- * Validate URL input
- */
+
 export function validateURL(url: string): {
   valid: boolean;
   sanitized?: string;
@@ -195,7 +183,8 @@ export function validateURL(url: string): {
     };
   }
 
-  // Only allow HTTP/HTTPS
+  
+
   if (!sanitized.startsWith("http://") && !sanitized.startsWith("https://")) {
     return {
       valid: false,
@@ -209,9 +198,7 @@ export function validateURL(url: string): {
   };
 }
 
-/**
- * Validate numeric input
- */
+
 export function validateNumber(
   input: string | number,
   options?: {
@@ -260,9 +247,7 @@ export function validateNumber(
   };
 }
 
-/**
- * Validate JSON input
- */
+
 export function validateJSON(input: string): {
   valid: boolean;
   parsed?: any;

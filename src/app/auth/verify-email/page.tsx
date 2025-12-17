@@ -63,7 +63,8 @@ export default function VerifyEmailPage() {
     if (/^\d{6}$/.test(pastedData)) {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
-      // Focus last input
+      
+
       document.getElementById(`otp-5`)?.focus();
     }
   };
@@ -95,7 +96,8 @@ export default function VerifyEmailPage() {
       if (!response.ok) {
         setError(result.error || "Verification failed");
         setLoading(false);
-        // Clear OTP on error
+        
+
         setOtp(["", "", "", "", "", ""]);
         document.getElementById("otp-0")?.focus();
         return;
@@ -137,7 +139,8 @@ export default function VerifyEmailPage() {
         return;
       }
 
-      setCountdown(60); // 60 second cooldown
+      setCountdown(60); 
+
       setResending(false);
       setOtp(["", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();

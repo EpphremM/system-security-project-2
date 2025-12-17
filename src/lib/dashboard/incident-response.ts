@@ -147,9 +147,7 @@ export async function addIncidentCommunication(
   }
 }
 
-/**
- * Create incident playbook
- */
+
 export async function createIncidentPlaybook(
   name: string,
   category: IncidentCategory,
@@ -179,9 +177,7 @@ export async function createIncidentPlaybook(
   return playbook.id;
 }
 
-/**
- * Apply incident playbook
- */
+
 async function applyIncidentPlaybook(
   incidentId: string,
   playbookId: string
@@ -209,9 +205,7 @@ async function applyIncidentPlaybook(
   });
 }
 
-/**
- * Notify incident assignment
- */
+
 async function notifyIncidentAssignment(
   incidentId: string,
   assignedTo: string
@@ -247,9 +241,7 @@ async function notifyIncidentAssignment(
   );
 }
 
-/**
- * Complete post-incident review
- */
+
 export async function completePostIncidentReview(
   incidentId: string,
   reviewedBy: string,
@@ -268,9 +260,7 @@ export async function completePostIncidentReview(
   });
 }
 
-/**
- * Get incident statistics
- */
+
 export async function getIncidentStatistics(options?: {
   startDate?: Date;
   endDate?: Date;
@@ -279,7 +269,8 @@ export async function getIncidentStatistics(options?: {
   byStatus: Array<{ status: IncidentStatus; count: number }>;
   bySeverity: Array<{ severity: IncidentSeverity; count: number }>;
   byCategory: Array<{ category: IncidentCategory; count: number }>;
-  averageResolutionTime: number; // in hours
+  averageResolutionTime: number; 
+
   openIncidents: number;
   criticalIncidents: number;
 }> {
@@ -317,7 +308,8 @@ export async function getIncidentStatistics(options?: {
   }
 
   const averageResolutionTime = resolvedCount > 0
-    ? totalResolutionTime / resolvedCount / (1000 * 60 * 60) // Convert to hours
+    ? totalResolutionTime / resolvedCount / (1000 * 60 * 60) 
+
     : 0;
 
   return {

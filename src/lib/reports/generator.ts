@@ -49,9 +49,7 @@ export async function generateReport(
   }
 }
 
-/**
- * Save report to database
- */
+
 export async function saveReport(
   reportType: ReportType,
   reportData: any,
@@ -84,9 +82,7 @@ export async function saveReport(
   return report.id;
 }
 
-/**
- * Generate and save report
- */
+
 export async function generateAndSaveReport(
   reportType: ReportType,
   generatedBy: string,
@@ -99,14 +95,16 @@ export async function generateAndSaveReport(
     scheduleId?: string;
   }
 ): Promise<string> {
-  // Generate report
+  
+
   const reportData = await generateReport(reportType, {
     startDate: options?.startDate,
     endDate: options?.endDate,
     filters: options?.filters,
   });
 
-  // Save report
+  
+
   const reportId = await saveReport(reportType, reportData, generatedBy, {
     format: options?.format,
     templateId: options?.templateId,
@@ -119,9 +117,7 @@ export async function generateAndSaveReport(
   return reportId;
 }
 
-/**
- * Export report to different formats
- */
+
 export async function exportReport(
   reportId: string,
   format: ReportFormat
@@ -165,8 +161,10 @@ export async function exportReport(
       };
 
     case "PDF":
-      // In production, use a PDF library like pdfkit or puppeteer
-      // For now, return HTML that can be converted to PDF
+      
+
+      
+
       const htmlForPDF = convertToHTML(reportData);
       return {
         content: htmlForPDF,
@@ -175,8 +173,10 @@ export async function exportReport(
       };
 
     case "EXCEL":
-      // In production, use a library like exceljs
-      // For now, return CSV
+      
+
+      
+
       const csvForExcel = convertToCSV(reportData);
       return {
         content: csvForExcel,
@@ -190,9 +190,7 @@ export async function exportReport(
   }
 }
 
-/**
- * Convert report data to CSV
- */
+
 function convertToCSV(data: any): string {
   if (Array.isArray(data)) {
     if (data.length === 0) return "";
@@ -203,7 +201,8 @@ function convertToCSV(data: any): string {
     return [headers.join(","), ...rows].join("\n");
   }
 
-  // For object data, flatten it
+  
+
   const lines: string[] = [];
   function flatten(obj: any, prefix = ""): void {
     for (const [key, value] of Object.entries(obj)) {
@@ -219,9 +218,7 @@ function convertToCSV(data: any): string {
   return lines.join("\n");
 }
 
-/**
- * Convert report data to HTML
- */
+
 function convertToHTML(data: any): string {
   const html = `
 <!DOCTYPE html>
@@ -247,9 +244,7 @@ function convertToHTML(data: any): string {
   return html;
 }
 
-/**
- * Get report by ID
- */
+
 export async function getReport(reportId: string): Promise<any> {
   const report = await prisma.report.findUnique({
     where: { id: reportId },
@@ -262,9 +257,7 @@ export async function getReport(reportId: string): Promise<any> {
   return report;
 }
 
-/**
- * List reports
- */
+
 export async function listReports(options?: {
   reportType?: ReportType;
   startDate?: Date;

@@ -47,7 +47,8 @@ export async function addToHashChain(
     throw new Error(`Log not found: ${logId}`);
   }
 
-  // Generate hash
+  
+
   const logHash = hashLogEntry({
     id: log.id,
     category: log.category,
@@ -59,13 +60,15 @@ export async function addToHashChain(
     details: log.details,
   });
 
-  // Combine with previous hash if exists
+  
+
   const chainInput = lastEntry
     ? `${lastEntry.currentHash}:${logHash}`
     : logHash;
   const currentHash = createHash("sha256").update(chainInput).digest("hex");
 
-  // Create chain entry
+  
+
   const chainEntry = await prisma.hashChain.create({
     data: {
       chainId: `chain-${category}-${Date.now()}`,
@@ -77,7 +80,8 @@ export async function addToHashChain(
     },
   });
 
-  // Update log with hash chain info
+  
+
   await prisma.auditLog.update({
     where: { id: logId },
     data: {
@@ -89,9 +93,7 @@ export async function addToHashChain(
   return currentHash;
 }
 
-/**
- * Verify hash chain integrity
- */
+
 export async function verifyHashChain(
   category: LogCategory,
   startSequence?: number,
@@ -122,7 +124,8 @@ export async function verifyHashChain(
     const entry = entries[i];
     const log = entry.log;
 
-    // Generate expected hash
+    
+
     const logHash = hashLogEntry({
       id: log.id,
       category: log.category,
@@ -134,7 +137,8 @@ export async function verifyHashChain(
       details: log.details,
     });
 
-    // Verify chain
+    
+
     const chainInput = i > 0
       ? `${entries[i - 1].currentHash}:${logHash}`
       : logHash;
@@ -143,7 +147,8 @@ export async function verifyHashChain(
     if (expectedHash !== entry.currentHash) {
       tamperedEntries.push(entry.logId);
       
-      // Mark log as tampered
+      
+
       await prisma.auditLog.update({
         where: { id: entry.logId },
         data: { isTampered: true },
@@ -160,21 +165,21 @@ export async function verifyHashChain(
   };
 }
 
-/**
- * Generate digital signature for log batch
- */
+
 export async function signLogBatch(
   batchId: string,
   logIds: string[],
   signedBy: string
 ): Promise<string> {
-  // Get logs
+  
+
   const logs = await prisma.auditLog.findMany({
     where: { id: { in: logIds } },
     orderBy: { createdAt: "asc" },
   });
 
-  // Create batch data
+  
+
   const batchData = {
     batchId,
     logIds: logs.map((l) => l.id),
@@ -184,8 +189,10 @@ export async function signLogBatch(
 
   const dataString = JSON.stringify(batchData);
 
-  // Generate signature (using RSA-SHA256)
-  // In production, use proper key management
+  
+
+  
+
   const privateKey = process.env.SIGNING_PRIVATE_KEY || "";
   if (!privateKey) {
     throw new Error("Signing private key not configured");
@@ -196,7 +203,8 @@ export async function signLogBatch(
   sign.end();
   const signature = sign.sign(privateKey, "base64");
 
-  // Create batch record
+  
+
   await prisma.logBatch.create({
     data: {
       batchId,
@@ -212,9 +220,7 @@ export async function signLogBatch(
   return signature;
 }
 
-/**
- * Verify digital signature for log batch
- */
+
 export async function verifyLogBatch(batchId: string): Promise<{
   valid: boolean;
   verified: boolean;
@@ -227,13 +233,15 @@ export async function verifyLogBatch(batchId: string): Promise<{
     throw new Error(`Batch not found: ${batchId}`);
   }
 
-  // Get logs
+  
+
   const logs = await prisma.auditLog.findMany({
     where: { id: { in: batch.logIds } },
     orderBy: { createdAt: "asc" },
   });
 
-  // Recreate batch data
+  
+
   const batchData = {
     batchId: batch.batchId,
     logIds: logs.map((l) => l.id),
@@ -243,7 +251,8 @@ export async function verifyLogBatch(batchId: string): Promise<{
 
   const dataString = JSON.stringify(batchData);
 
-  // Verify signature
+  
+
   const publicKey = process.env.SIGNING_PUBLIC_KEY || "";
   if (!publicKey) {
     throw new Error("Signing public key not configured");
@@ -254,7 +263,8 @@ export async function verifyLogBatch(batchId: string): Promise<{
   verify.end();
   const valid = verify.verify(publicKey, batch.signature, "base64");
 
-  // Update batch verification status
+  
+
   if (valid) {
     await prisma.logBatch.update({
       where: { id: batch.id },
@@ -271,9 +281,7 @@ export async function verifyLogBatch(batchId: string): Promise<{
   };
 }
 
-/**
- * Detect tampering in logs
- */
+
 export async function detectTampering(
   logId: string
 ): Promise<{
@@ -291,12 +299,14 @@ export async function detectTampering(
     throw new Error(`Log not found: ${logId}`);
   }
 
-  // Check if already marked as tampered
+  
+
   if (log.isTampered) {
     return { tampered: true, reason: "Log marked as tampered" };
   }
 
-  // Verify hash chain if exists
+  
+
   if (log.hashChainEntry) {
     const category = log.category as LogCategory;
     const verification = await verifyHashChain(

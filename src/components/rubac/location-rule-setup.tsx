@@ -114,7 +114,7 @@ export function LocationRuleSetup({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* New Rule Form */}
+        {}
         <div className="border rounded-lg p-4 space-y-4">
           <div className="space-y-2">
             <Label>Rule Name</Label>
@@ -161,7 +161,7 @@ export function LocationRuleSetup({
           </Button>
         </div>
 
-        {/* Current Location Check */}
+        {}
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -188,7 +188,7 @@ export function LocationRuleSetup({
           </div>
         </div>
 
-        {/* Existing Rules */}
+        {}
         {rules.length > 0 && (
           <div className="space-y-2">
             <Label>Active Rules</Label>

@@ -168,7 +168,7 @@ export function PolicyBuilder({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Policy Info */}
+        {}
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Policy Name</Label>
@@ -209,7 +209,7 @@ export function PolicyBuilder({
           </div>
         </div>
 
-        {/* Rule Builder */}
+        {}
         <div className="border rounded-lg p-4 space-y-4">
           <h4 className="font-medium">Add Rule</h4>
           <div className="grid gap-4 md:grid-cols-3">
@@ -271,7 +271,7 @@ export function PolicyBuilder({
           </Button>
         </div>
 
-        {/* Existing Rules */}
+        {}
         {policy.rules.length > 0 && (
           <div className="space-y-2">
             <Label>Policy Rules (All must match)</Label>
@@ -299,7 +299,7 @@ export function PolicyBuilder({
           </div>
         )}
 
-        {/* Actions */}
+        {}
         <div className="flex gap-2">
           <Button onClick={handleTest} variant="outline" className="flex-1">
             <Play className="h-4 w-4 mr-2" />

@@ -99,7 +99,7 @@ export function SecurityLabelSelector({
 
       <p className="text-xs text-muted-foreground">{config.description}</p>
 
-      {/* Warning for High Security */}
+      {}
       {showWarning && isHighSecurity && (
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-4">

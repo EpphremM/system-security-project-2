@@ -77,17 +77,17 @@ export async function sendEmailOTP(
     `
   );
 
-  return code; // Return for testing purposes (remove in production if needed)
+  return code; 
+
 }
 
-/**
- * Verify email OTP code
- */
+
 export async function verifyEmailOTP(
   userId: string,
   code: string
 ): Promise<boolean> {
-  // Find the most recent unused OTP for this user
+  
+
   const otp = await prisma.mFAEmailOTP.findFirst({
     where: {
       userId,
@@ -105,11 +105,13 @@ export async function verifyEmailOTP(
     return false;
   }
 
-  // Verify the code
+  
+
   const isValid = await verifyEmailOTPCode(code, otp.code);
 
   if (isValid) {
-    // Mark as used
+    
+
     await prisma.mFAEmailOTP.update({
       where: { id: otp.id },
       data: {
@@ -122,15 +124,14 @@ export async function verifyEmailOTP(
   return isValid;
 }
 
-/**
- * Clean up expired OTP codes (should be run periodically)
- */
+
 export async function cleanupExpiredOTPs() {
   await prisma.mFAEmailOTP.deleteMany({
     where: {
       OR: [
         { expiresAt: { lt: new Date() } },
-        { used: true, usedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }, // Delete used OTPs older than 24 hours
+        { used: true, usedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }, 
+
       ],
     },
   });

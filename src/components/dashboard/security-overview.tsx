@@ -165,7 +165,7 @@ export function SecurityOverview() {
         </Card>
       </div>
 
-      {/* Detailed Information */}
+      {}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -242,7 +242,7 @@ export function SecurityOverview() {
         </Card>
       </div>
 
-      {/* Top IPs with Failed Logins */}
+      {}
       {topIPs.length > 0 && (
         <Card>
           <CardHeader>

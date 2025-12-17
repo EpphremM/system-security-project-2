@@ -13,10 +13,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cleanup expired tokens
+    
+
     const deletedTokens = await cleanupExpiredTokens();
 
-    // Cleanup unverified users (older than 7 days)
+    
+
     const deletedUsers = await cleanupUnverifiedUsers(7);
 
     return NextResponse.json({
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
     );
   }
 }
+
 
 
 

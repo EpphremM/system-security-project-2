@@ -68,17 +68,78 @@ export default function BackupPage() {
       });
 
       if (response.ok) {
-        
+        const data = await response.json();
+        alert(`Backup started successfully! Backup ID: ${data.backupId}`);
         setTimeout(() => {
           fetchBackups();
           setBackingUp(false);
         }, 2000);
       } else {
+        const error = await response.json();
+        alert(`Backup failed: ${error.error || error.message}`);
         setBackingUp(false);
       }
     } catch (error) {
       console.error("Backup failed:", error);
+      alert("Backup failed. Please try again.");
       setBackingUp(false);
+    }
+  };
+
+  const handleDownload = async (backupId: string) => {
+    try {
+      const response = await fetch(`/api/backup/download?id=${backupId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup-${backupId}.backup`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        alert(`Download failed: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Download failed. Please try again.");
+    }
+  };
+
+  const handleRestore = async (backupId: string) => {
+    if (!confirm("Are you sure you want to restore this backup? This action cannot be undone.")) {
+      return;
+    }
+
+    if (!confirm("WARNING: This will overwrite current data. Are you absolutely sure?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/backup/restore", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          backupId,
+          confirm: true,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Restore initiated: ${data.message}`);
+      } else {
+        const error = await response.json();
+        alert(`Restore failed: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Restore failed:", error);
+      alert("Restore failed. Please try again.");
     }
   };
 
@@ -250,10 +311,28 @@ export default function BackupPage() {
                         )}
                       </td>
                       <td className="p-4">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Restore
-                        </Button>
+                        <div className="flex gap-2">
+                          {backup.status === "COMPLETED" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownload(backup.id)}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRestore(backup.id)}
+                                disabled={!backup.verified}
+                              >
+                                Restore
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

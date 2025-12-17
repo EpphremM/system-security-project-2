@@ -116,8 +116,10 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      // Update existing resource label if user has permission
-      const canDeclassify = userClearance.trustedSubject; // Only trusted subjects can change classification
+      
+
+      const canDeclassify = userClearance.trustedSubject; 
+
 
       if (canDeclassify) {
         const securityLabel = await prisma.securityLabel.findFirst({
@@ -162,7 +164,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log audit event
+    
+
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,

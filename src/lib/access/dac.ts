@@ -150,9 +150,71 @@ export async function grantPermission(
   reason?: string
 ) {
   
-  const canShare = await hasPermission(grantedBy, resourceType, resourceId, "share");
-  if (!canShare.allowed && !(await isResourceOwner(grantedBy, resourceType, resourceId))) {
-    throw new Error("You do not have permission to share this resource");
+  const user = await prisma.user.findUnique({
+    where: { id: grantedBy },
+    select: { 
+      legacyRole: true,
+      securityClearance: true,
+      clearance: {
+        select: {
+          level: true,
+          status: true,
+          expiresAt: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const isAdmin = user.legacyRole === "ADMIN" || user.legacyRole === "SUPER_ADMIN" || user.legacyRole === "HR" || user.legacyRole === "IT_ADMIN";
+  
+  const clearanceLevel = user.clearance?.level ?? user.securityClearance;
+  const clearanceStatus = user.clearance?.status;
+  const clearanceExpired = user.clearance?.expiresAt ? user.clearance.expiresAt < new Date() : false;
+  
+  const hasActiveClearanceRecord = user.clearance && clearanceStatus === "ACTIVE" && !clearanceExpired;
+  const hasTopSecretInSecurityClearance = user.securityClearance === "TOP_SECRET";
+  const hasTopSecretInClearanceRecord = user.clearance?.level === "TOP_SECRET" && hasActiveClearanceRecord;
+  
+  const hasTopSecretClearance = hasTopSecretInSecurityClearance || hasTopSecretInClearanceRecord;
+  
+  if (!isAdmin && !hasTopSecretClearance) {
+    const canShare = await hasPermission(grantedBy, resourceType, resourceId, "share");
+    const isOwner = await isResourceOwner(grantedBy, resourceType, resourceId);
+    if (!canShare.allowed && !isOwner) {
+      console.error("Share permission denied:", {
+        userId: grantedBy,
+        role: user.legacyRole,
+        securityClearance: user.securityClearance,
+        clearanceLevel: user.clearance?.level,
+        clearanceStatus: user.clearance?.status,
+        clearanceExpired,
+        hasTopSecret: hasTopSecretClearance,
+        hasTopSecretInSecurityClearance,
+        hasTopSecretInClearanceRecord,
+        canShare: canShare.allowed,
+        isOwner,
+      });
+      throw new Error(
+        `You do not have permission to share this resource. ` +
+        `Required: Admin role, TOP_SECRET clearance, share permission, or resource ownership. ` +
+        `Your role: ${user.legacyRole}, Security Clearance: ${user.securityClearance}, ` +
+        `Clearance Level: ${user.clearance?.level || "none"}, Status: ${user.clearance?.status || "none"}`
+      );
+    }
+  }
+
+  if (hasTopSecretClearance && !isAdmin) {
+    permissions = {
+      read: permissions.read ?? true,
+      write: false,
+      execute: false,
+      delete: false,
+      share: false,
+    };
   }
 
   
@@ -166,13 +228,48 @@ export async function grantPermission(
   });
 
   if (!resource) {
+    const owner = await prisma.user.findUnique({
+      where: { id: grantedBy },
+      select: { securityClearance: true },
+    });
+
+    const defaultClassification = owner?.securityClearance || "INTERNAL";
+    
+    let securityLabel = await prisma.securityLabel.findFirst({
+      where: {
+        classification: defaultClassification,
+        enabled: true,
+      },
+    });
+
+    if (!securityLabel) {
+      const levelMap: Record<string, number> = {
+        PUBLIC: 0,
+        INTERNAL: 1,
+        CONFIDENTIAL: 2,
+        RESTRICTED: 3,
+        TOP_SECRET: 4,
+      };
+      
+      securityLabel = await prisma.securityLabel.create({
+        data: {
+          name: `Default ${defaultClassification}`,
+          level: levelMap[defaultClassification] || 1,
+          classification: defaultClassification,
+          dataCategory: "GENERAL",
+          compartments: [],
+          isSystem: true,
+          enabled: true,
+        },
+      });
+    }
     
     resource = await prisma.resource.create({
       data: {
         type: resourceType,
         resourceId,
         ownerId: grantedBy,
-        securityLabelId: "", 
+        securityLabelId: securityLabel.id,
       },
     });
   }

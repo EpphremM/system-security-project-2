@@ -74,7 +74,8 @@ export async function syncToSIEM(
     }
   }
 
-  // Update last sync time
+  
+
   if (synced > 0) {
     await prisma.sIEMIntegration.update({
       where: { id: siemId },
@@ -89,9 +90,7 @@ export async function syncToSIEM(
   };
 }
 
-/**
- * Format log for SIEM
- */
+
 function formatLogForSIEM(log: any, siemType: string): any {
   const baseFormat = {
     id: log.id,
@@ -117,7 +116,8 @@ function formatLogForSIEM(log: any, siemType: string): any {
     details: log.details,
   };
 
-  // Format based on SIEM type
+  
+
   switch (siemType) {
     case "SPLUNK":
       return {
@@ -147,9 +147,7 @@ function formatLogForSIEM(log: any, siemType: string): any {
   }
 }
 
-/**
- * Send log to SIEM endpoint
- */
+
 async function sendToSIEM(
   endpoint: string,
   data: any,
@@ -174,9 +172,7 @@ async function sendToSIEM(
   }
 }
 
-/**
- * Create SIEM integration
- */
+
 export async function createSIEMIntegration(
   name: string,
   type: string,
@@ -184,7 +180,8 @@ export async function createSIEMIntegration(
   apiKey?: string,
   filters?: any
 ): Promise<any> {
-  // Encrypt API key if provided
+  
+
   let encryptedApiKey: string | undefined;
   if (apiKey) {
     const encrypted = await encryptLogData(apiKey, "SYSTEM");
@@ -203,9 +200,7 @@ export async function createSIEMIntegration(
   });
 }
 
-/**
- * Get all SIEM integrations
- */
+
 export async function getSIEMIntegrations(): Promise<any[]> {
   return await prisma.sIEMIntegration.findMany({
     where: { enabled: true },
@@ -218,14 +213,13 @@ export async function getSIEMIntegrations(): Promise<any[]> {
       lastSyncAt: true,
       syncInterval: true,
       createdAt: true,
-      // Don't return API key
+      
+
     },
   });
 }
 
-/**
- * Auto-sync all enabled SIEM integrations
- */
+
 export async function autoSyncSIEM(): Promise<{
   synced: number;
   failed: number;

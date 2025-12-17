@@ -42,9 +42,7 @@ export async function sendVerificationEmail(
   );
 }
 
-/**
- * Send welcome email after verification
- */
+
 export async function sendWelcomeEmail(
   email: string,
   name?: string

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { checkInVisitor, checkOutVisitor, automaticCheckOut, getVisitorQRCode } from "@/lib/visitors/checkin";
+import { createHash } from "crypto";
 import { z } from "zod";
 
 const checkInSchema = z.object({
-  visitorId: z.string().uuid(),
+  visitorId: z.string().optional(),
   qrCode: z.string().optional(),
   idVerified: z.boolean().optional(),
 });
@@ -25,13 +27,67 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.errors },
+        { error: "Invalid input", details: parsed.error.issues },
         { status: 400 }
       );
     }
 
-    const result = await checkInVisitor(parsed.data.visitorId, session.user.id, {
-      qrCode: parsed.data.qrCode,
+    let visitorId: string | null = null;
+    let qrCodeData: string | undefined = undefined;
+
+    const inputValue = parsed.data.visitorId || parsed.data.qrCode;
+
+    if (inputValue) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (uuidRegex.test(inputValue)) {
+        visitorId = inputValue;
+      } else {
+        try {
+          const qrData = JSON.parse(inputValue);
+          if (qrData.visitorId) {
+            visitorId = qrData.visitorId;
+            qrCodeData = inputValue;
+          }
+        } catch {
+          qrCodeData = inputValue;
+        }
+      }
+    }
+
+    if (!visitorId && qrCodeData) {
+      try {
+        const hashRegex = /^[0-9a-f]{64}$/i;
+        let qrHash: string;
+        
+        if (hashRegex.test(qrCodeData)) {
+          qrHash = qrCodeData;
+        } else {
+          qrHash = createHash("sha256").update(qrCodeData).digest("hex");
+        }
+        
+        const visitor = await prisma.visitor.findFirst({
+          where: { qrCode: qrHash },
+          select: { id: true },
+        });
+        
+        if (visitor) {
+          visitorId = visitor.id;
+        }
+      } catch (err) {
+        console.error("Error looking up visitor by QR code hash:", err);
+      }
+    }
+
+    if (!visitorId) {
+      return NextResponse.json(
+        { error: "Visitor ID or valid QR code is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await checkInVisitor(visitorId, session.user.id, {
+      qrCode: qrCodeData,
       idVerified: parsed.data.idVerified,
     });
 
@@ -70,7 +126,7 @@ export async function PUT(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.errors },
+        { error: "Invalid input", details: parsed.error.issues },
         { status: 400 }
       );
     }

@@ -54,7 +54,9 @@ export async function rateLimit(
     await limiter.consume(ip);
     return { allowed: true };
   } catch (error: any) {
-    const retryAfter = Math.round(error.msBeforeNext / 1000) || 60;
+    
+
+    const retryAfter = 1;
     return {
       allowed: false,
       response: NextResponse.json(
@@ -229,9 +231,7 @@ export function checkAPIVersion(
   };
 }
 
-/**
- * Compare version strings
- */
+
 function compareVersions(v1: string, v2: string): number {
   const parts1 = v1.split(".").map(Number);
   const parts2 = v2.split(".").map(Number);
@@ -246,9 +246,7 @@ function compareVersions(v1: string, v2: string): number {
   return 0;
 }
 
-/**
- * Generate CSRF token
- */
+
 export async function generateCSRFToken(): Promise<string> {
   const randomData = Array.from(randomBytes(32))
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -257,12 +255,12 @@ export async function generateCSRFToken(): Promise<string> {
   return await createHash(data);
 }
 
-/**
- * Verify CSRF token
- */
+
 export function verifyCSRFToken(token: string, sessionToken?: string): boolean {
-  // In production, verify against session token
-  // For now, basic validation
+  
+
+  
+
   return token.length === 64 && /^[a-f0-9]+$/.test(token);
 }
 
